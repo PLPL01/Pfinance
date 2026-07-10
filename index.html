@@ -594,7 +594,7 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-/* ---------------- APP PIN LOCK ---------------- */
+/* ---------------- APP PIN LOCK (Universal Sync) ---------------- */
 let appPin = localStorage.getItem('mh_app_pin') || '';
 let enteredPin = '';
 let isSettingPin = false;
@@ -644,6 +644,7 @@ function processPin() {
       if(enteredPin === tempPin) {
         appPin = enteredPin;
         localStorage.setItem('mh_app_pin', appPin);
+        pushToCloud(); // Sync PIN to cloud immediately
         showToast('PIN saved successfully!');
         isSettingPin = false;
         document.getElementById('appLockOverlay').classList.remove('active');
@@ -684,6 +685,7 @@ function togglePinSetup() {
     if(confirm('Remove PIN protection?')) {
       localStorage.removeItem('mh_app_pin');
       appPin = '';
+      pushToCloud(); // Sync PIN removal to cloud
       renderSidebarLockBtn();
       showToast('PIN protection removed');
     }
@@ -753,17 +755,26 @@ function listenToCloud(uid){
   if(fbUnsub) fbUnsub();
   const docRef = fbDb.collection('maro-hisab-users').doc(uid);
   docRef.get().then(snap=>{
-    if(!snap.exists) docRef.set({ loans, txns, budgets, updatedAt: new Date().toISOString() });
+    if(!snap.exists) docRef.set({ loans, txns, budgets, pin: appPin, updatedAt: new Date().toISOString() });
   });
   fbUnsub = docRef.onSnapshot(snap=>{
     if(!snap.exists) return;
     const data = snap.data();
     fbApplyingRemote = true;
     loans = data.loans || []; txns = data.txns || []; budgets = data.budgets || {};
+    
+    // Universal PIN Logic Sync from Cloud
+    if(data.pin !== undefined) {
+      appPin = data.pin;
+      if(appPin) localStorage.setItem('mh_app_pin', appPin);
+      else localStorage.removeItem('mh_app_pin');
+    }
+
     localStorage.setItem('mh_loans', JSON.stringify(loans));
     localStorage.setItem('mh_transactions', JSON.stringify(txns));
     localStorage.setItem('mh_budgets', JSON.stringify(budgets));
     renderAll();
+    checkLock(); // Ensure UI immediately reflects the synced PIN lock status
     fbApplyingRemote = false;
     updateSyncStatus('on');
   }, ()=> updateSyncStatus('error'));
@@ -774,7 +785,7 @@ function pushToCloud(){
   clearTimeout(fbSaveTimer);
   fbSaveTimer = setTimeout(()=>{
     fbDb.collection('maro-hisab-users').doc(fbUser.uid)
-      .set({ loans, txns, budgets, updatedAt: new Date().toISOString() })
+      .set({ loans, txns, budgets, pin: appPin, updatedAt: new Date().toISOString() }) // Includes PIN
       .catch(()=> updateSyncStatus('error'));
   }, 500);
 }
