@@ -998,9 +998,8 @@ function renderTxns(){
 function renderBudget(){
   const panel = document.getElementById('budgetPanel');
   const cats = Object.keys(budgets);
-  document.getElementById('budgetEmpty').style.display = cats.length ? 'none' : '';
   panel.innerHTML = '';
-  if(!cats.length){ panel.appendChild(document.getElementById('budgetEmpty')); return; }
+  if(!cats.length){ panel.innerHTML = '<div class="empty gu" id="budgetEmpty">No budget set yet</div>'; return; }
   const now = new Date(); const ym = now.toISOString().slice(0,7);
   cats.forEach(cat=>{
     const spent = txns.filter(t=>t.type==='expense' && t.category===cat && t.date.slice(0,7)===ym)
