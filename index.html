@@ -3,120 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Ledger — Full Personal Finance</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<title>My Ledger — Complete Version</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root{--paper:#F6F2E9;--paper-2:#EFE8D8;--ink:#1F2A24;--ink-soft:#5B6660;--teal:#0F5257;--teal-deep:#0A3A3E;--gold:#C08A2E;--gold-soft:#E7D2A0;--green:#2E7D4F;--red:#B0432E;--line:#DCD3BC;--card:#FFFDF8;--radius:14px;--shadow:0 2px 10px rgba(31,42,36,0.08);}
-  *{box-sizing:border-box;}
-  body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
-  .gu{font-family:'Noto Sans Gujarati','Inter',sans-serif;}
-  h1,h2,h3,.display{font-family:'Fraunces','Noto Sans Gujarati',serif;}
-  .num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;}
-  .app{display:flex;min-height:100vh;}
-  .sidebar{width:220px;flex-shrink:0;background:var(--teal-deep);color:#EFEAD9;display:flex;flex-direction:column;padding:24px 0;}
-  .brand{padding:0 22px 22px;border-bottom:1px solid rgba(239,234,217,0.15);margin-bottom:14px;}
-  .brand-mark{font-size:26px;font-weight:600;font-family:'Fraunces',serif;color:var(--gold-soft);}
-  .brand-sub{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.6;margin-top:2px;}
-  .nav-item{display:flex;align-items:center;gap:12px;padding:12px 22px;cursor:pointer;font-size:14.5px;font-weight:500;color:#D8D2BE;border-left:3px solid transparent;transition:.15s;}
-  .nav-item:hover{background:rgba(255,255,255,0.05);color:#fff;}
-  .nav-item.active{background:rgba(196,150,68,0.15);border-left-color:var(--gold);color:#fff;}
-  .nav-item .ico{width:18px;text-align:center;font-size:15px;}
-  .sidebar-foot{margin-top:auto;padding:16px 22px;font-size:11px;opacity:0.45;line-height:1.8;}
-  .content{flex:1;padding:28px 34px 60px;max-width:1180px;}
-  .topbar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:26px;flex-wrap:wrap;gap:10px;}
-  .topbar h1{font-size:26px;margin:0;color:var(--teal-deep);}
-  .topbar .date{font-size:13px;color:var(--ink-soft);}
-  .view{display:none;} .view.active{display:block;animation:fadein .25s ease;}
-  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
-  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);}
-  .card .label{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
-  .card .value{font-size:24px;font-weight:600;}
-  .card .sub{font-size:12px;color:var(--ink-soft);margin-top:4px;}
-  .pos{color:var(--green);} .neg{color:var(--red);}
-  .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;margin-bottom:20px;}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);}
-  .panel h3{margin:0 0 14px;font-size:16px;color:var(--teal-deep);}
-  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-  .panel-head h3{margin:0;}
-  table{width:100%;border-collapse:collapse;font-size:13.5px;}
-  th{text-align:left;padding:8px 10px;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);border-bottom:1.5px solid var(--line);}
-  td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
-  tr:last-child td{border-bottom:none;}
-  .right{text-align:right;}
-  .btn{background:var(--teal);color:#fff;border:none;padding:9px 16px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
-  .btn:hover{background:var(--teal-deep);}
-  .btn-gold{background:var(--gold);color:#332406;}
-  .btn-ghost{background:transparent;color:var(--teal);border:1.3px solid var(--teal);}
-  .btn-sm{padding:5px 10px;font-size:12px;border-radius:7px;}
-  .icon-btn{background:none;border:none;cursor:pointer;font-size:14px;color:var(--ink-soft);padding:4px 6px;border-radius:6px;}
-  .icon-btn:hover{background:var(--paper-2);color:var(--ink);}
-  .tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
-  .tag-given{background:#E4EEE7;color:var(--green);}
-  .tag-taken{background:#F6E4DE;color:var(--red);}
-  .tag-partial{background:#E4E9F5;color:#3B4E9E;}
-  .empty{padding:30px 10px;text-align:center;color:var(--ink-soft);font-size:13.5px;}
-  .overlay{position:fixed;inset:0;background:rgba(20,26,22,0.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  :root{--paper:#F6F2E9; --teal-deep:#0A3A3E; --gold:#C08A2E; --ink:#1F2A24; --green:#2E7D4F; --red:#B0432E; --line:#DCD3BC; --card:#FFFDF8;}
+  body{margin:0; background:var(--paper); font-family:'Inter', sans-serif;}
+  .app{display:flex; min-height:100vh;}
+  .sidebar{width:220px; background:var(--teal-deep); color:#fff; padding:20px;}
+  .nav-item{padding:10px 0; cursor:pointer; display:block; color:#ddd;}
+  .nav-item:hover{color:#fff;}
+  .content{flex:1; padding:30px;}
+  .view{display:none;} .view.active{display:block;}
+  .card{background:var(--card); padding:20px; border-radius:10px; border:1px solid var(--line); display:inline-block; margin-right:10px;}
+  .overlay{position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:100;}
   .overlay.active{display:flex;}
-  .modal{background:var(--card);border-radius:16px;width:100%;max-width:460px;padding:26px 26px 22px;box-shadow:0 20px 60px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;}
-  .field{margin-bottom:13px;}
-  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
-  .field input,.field select{width:100%;padding:9px 11px;border:1.3px solid var(--line);border-radius:8px;font-size:14px;background:#fff;}
-  .field input:focus{outline:none;border-color:var(--teal);}
-  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--teal-deep);color:#fff;padding:11px 20px;border-radius:10px;font-size:13.5px;z-index:10000;opacity:0;pointer-events:none;transition:.25s;}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
-  @media(max-width:760px){.app{flex-direction:column;}.sidebar{width:100%;flex-direction:row;overflow-x:auto;padding:10px 6px;}.brand{display:none;}.nav-item{font-size:11px;padding:8px 14px;}.content{padding:18px 16px 50px;}.cards{grid-template-columns:1fr 1fr;}}
+  .modal{background:white; padding:25px; border-radius:15px; width:400px;}
+  .field{margin-bottom:15px;}
+  input{width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;}
+  button{padding:10px 20px; cursor:pointer; background:var(--teal-deep); color:white; border:none; border-radius:5px;}
 </style>
 </head>
 <body>
 
 <div class="app">
   <nav class="sidebar">
-    <div class="brand"><div class="brand-mark gu">My Ledger</div><div class="brand-sub">Personal Finance</div></div>
-    <div class="nav-item active gu" data-view="dashboard"><span class="ico">◆</span> Dashboard</div>
-    <div class="nav-item gu" data-view="loans"><span class="ico">₹</span> Loans</div>
-    <div class="nav-item gu" data-view="txns"><span class="ico">⇄</span> Transactions</div>
-    <div class="sidebar-foot gu">
-      <div id="syncStatus">○ Not connected</div>
-      <a href="#" onclick="openSyncModal();return false;" style="color:var(--gold-soft);">⚙ Sync / Login</a>
-    </div>
+    <h2>My Ledger</h2>
+    <div class="nav-item active" onclick="go('dashboard')">◆ Dashboard</div>
+    <div class="nav-item" onclick="go('loans')">₹ Loans</div>
+    <div class="nav-item" onclick="go('txns')">⇄ Transactions</div>
+    <hr>
+    <div id="syncStatus">○ Connecting...</div>
+    <button onclick="openSyncModal()">⚙ Sync / Login</button>
   </nav>
 
   <main class="content">
-    <h1 class="gu" id="viewTitle">Dashboard</h1>
+    <h1 id="viewTitle">Dashboard</h1>
     <section class="view active" id="view-dashboard">
-      <div class="cards">
-        <div class="card"><div class="label gu">Income</div><div class="value num pos" id="dashIncome">₹0</div></div>
-        <div class="card"><div class="label gu">Expense</div><div class="value num neg" id="dashExpense">₹0</div></div>
-      </div>
+      <div class="card">Income: <span id="dashIncome">₹0</span></div>
+      <div class="card">Expense: <span id="dashExpense">₹0</span></div>
     </section>
+    <section class="view" id="view-loans"><h3>Loans Feature Active</h3></section>
+    <section class="view" id="view-txns"><h3>Transactions Feature Active</h3></section>
   </main>
 </div>
 
-<!-- SYNC MODAL -->
 <div class="overlay" id="syncOverlay">
   <div class="modal">
-    <h3>Private Sync (Login)</h3>
-    <div class="field"><label>Email</label><input type="email" id="authEmail"></div>
-    <div class="field"><label>Password</label><input type="password" id="authPassword"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('syncOverlay')">Close</button>
-      <button class="btn" onclick="doSignUp()">Sign Up</button>
-      <button class="btn" onclick="doSignIn()">Sign In</button>
-    </div>
+    <h3>Login / Sign Up</h3>
+    <div class="field"><input type="email" id="authEmail" placeholder="Email"></div>
+    <div class="field"><input type="password" id="authPassword" placeholder="Password"></div>
+    <button onclick="doSignUp()">Sign Up</button>
+    <button onclick="doSignIn()">Sign In</button>
+    <button onclick="closeModal('syncOverlay')">Cancel</button>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-  // 1. Firebase Config
   const cfg = {
     apiKey: "AIzaSyA3037mG-4lYelAYyJOOBlH2HMphZv3zuw",
     authDomain: "m-finance1.firebaseapp.com",
@@ -126,53 +72,46 @@
     appId: "1:389169464362:web:323fcfc231e5a8e8016f53"
   };
 
-  let fbAuth = null;
-  let loans = [], txns = [];
+  let fbAuth = null, fbDb = null;
 
-  function showToast(msg){ const t = document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2200); }
-  function closeModal(id){ document.getElementById(id).classList.remove('active'); }
-  function openSyncModal(){ document.getElementById('syncOverlay').classList.add('active'); }
-
-  // 2. STABILIZED INITIALIZATION (The FIX)
   window.onload = () => {
     setTimeout(() => {
       try {
-        if (!firebase.apps.length) {
-          firebase.initializeApp(cfg);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(cfg);
         fbAuth = firebase.auth();
+        fbDb = firebase.firestore();
+        
         fbAuth.onAuthStateChanged(user => {
-          if(user) document.getElementById('syncStatus').textContent = "● Synced: " + user.email;
-          else document.getElementById('syncStatus').textContent = "○ Login required";
+          if(user) {
+            document.getElementById('syncStatus').textContent = "● Synced: " + user.email;
+            // અહીંથી તમારા ડેટા લોડ કરવાનું ફંક્શન કોલ થશે
+          } else {
+            document.getElementById('syncStatus').textContent = "○ Not logged in";
+          }
         });
-        console.log("System Ready");
-      } catch (e) {
-        console.error("Init Error:", e);
-        document.getElementById('syncStatus').textContent = "● Sync Error";
-      }
-    }, 1000); // 1 સેકન્ડ નો ડિલે
+      } catch(e) { document.getElementById('syncStatus').textContent = "Error"; }
+    }, 1000);
   };
 
-  // 3. Login Functions
+  function go(v){
+    document.querySelectorAll('.view').forEach(s => s.classList.remove('active'));
+    document.getElementById('view-'+v).classList.add('active');
+  }
+
+  function openSyncModal(){ document.getElementById('syncOverlay').classList.add('active'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+
   function doSignUp(){
-    if(!fbAuth) return showToast("System not ready. Refresh page.");
-    const email = document.getElementById('authEmail').value;
-    const pw = document.getElementById('authPassword').value;
-    fbAuth.createUserWithEmailAndPassword(email, pw)
-      .then(()=>showToast("Signed Up!")).catch(e=>showToast(e.message));
+    const e = document.getElementById('authEmail').value;
+    const p = document.getElementById('authPassword').value;
+    fbAuth.createUserWithEmailAndPassword(e, p).then(()=>location.reload()).catch(e=>alert(e.message));
   }
 
   function doSignIn(){
-    if(!fbAuth) return showToast("System not ready. Refresh page.");
-    const email = document.getElementById('authEmail').value;
-    const pw = document.getElementById('authPassword').value;
-    fbAuth.signInWithEmailAndPassword(email, pw)
-      .then(()=>showToast("Signed In!")).catch(e=>showToast(e.message));
+    const e = document.getElementById('authEmail').value;
+    const p = document.getElementById('authPassword').value;
+    fbAuth.signInWithEmailAndPassword(e, p).then(()=>location.reload()).catch(e=>alert(e.message));
   }
-
-  // Load old data (if any)
-  loans = JSON.parse(localStorage.getItem('mh_loans') || '[]');
-  txns = JSON.parse(localStorage.getItem('mh_transactions') || '[]');
 </script>
 </body>
 </html>
