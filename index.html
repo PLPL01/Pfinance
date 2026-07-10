@@ -827,10 +827,20 @@ function doSignIn(){
   if(!email || !pw) return showToast('Enter email and password');
   fbAuth.signInWithEmailAndPassword(email, pw).then(()=>showToast('Signed in')).catch(e=>showToast(e.message));
 }
-function doSignOut(){ if(fbAuth) fbAuth.signOut(); showToast('Signed out locally'); }
-window.openSyncModal=openSyncModal; 
-window.doSignUp=doSignUp; window.doSignIn=doSignIn; window.doSignOut=doSignOut;
-
+function doSignOut() {
+  if (fbAuth) {
+    fbAuth.signOut().then(() => {
+      // આ લાઈનોથી બ્રાઉઝરની મેમરીમાંથી બધો ડેટા ડિલીટ થઈ જશે
+      localStorage.removeItem('mh_loans');
+      localStorage.removeItem('mh_transactions');
+      localStorage.removeItem('mh_budgets');
+      localStorage.removeItem('mh_app_pin');
+      
+      showToast('Signed out and data cleared');
+      location.reload(); // પેજ રિફ્રેશ કરો એટલે ડેટા સ્ક્રીન પરથી પણ હટી જશે
+    }).catch(e => showToast('Error signing out: ' + e.message));
+  }
+}
 
 /* ---------------- NAV ---------------- */
 const titles = {dashboard:'Dashboard', loans:'Loans', txns:'Income & Expense', budget:'Budget', reports:'Reports'};
