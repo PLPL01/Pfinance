@@ -6,7 +6,7 @@
 <title>My Ledger — Personal Finance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
     --paper:#F6F2E9;
@@ -1149,42 +1149,29 @@ function renderReportCharts(){
   });
 }
 
-/* એક્સપોર્ટ (એન્ક્રિપ્શન સાથે) */
 function exportData(){
-  const password = prompt("એક્સપોર્ટ ફાઈલ માટે પાસવર્ડ સેટ કરો:");
-  if (!password) return;
-
   const data = {loans, txns, budgets, exportedAt: new Date().toISOString()};
-  const encrypted = CryptoJS.AES.encrypt(JSON.stringify(data), password).toString();
-  
-  const blob = new Blob([encrypted], {type:'text/plain'});
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'backup-encrypted.txt';
+  a.href = url; a.download = 'maro-hisab-backup-'+todayStr()+'.json';
   a.click(); URL.revokeObjectURL(url);
-  showToast('Data encrypted and exported!');
+  showToast('Data exported');
 }
-
-/* ઈમ્પોર્ટ (ડિ-એન્ક્રિપ્શન સાથે) */
 function importData(evt){
   const file = evt.target.files[0];
   if(!file) return;
-  const password = prompt("આ ફાઈલનો પાસવર્ડ નાખો:");
-  if (!password) return;
-
   const reader = new FileReader();
   reader.onload = e => {
     try{
-      const bytes = CryptoJS.AES.decrypt(e.target.result, password);
-      const decrypted = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-      if(decrypted.loans) loans = decrypted.loans;
-      if(decrypted.txns) txns = decrypted.txns;
-      if(decrypted.budgets) budgets = decrypted.budgets;
-      saveLoans(); saveTxns(); saveBudgets(); renderAll();
-      showToast('Data imported successfully!');
-    }catch(err){ 
-      showToast('ખોટો પાસવર્ડ અથવા ફાઈલ કરપ્ટ છે!'); 
-    }
+      const data = JSON.parse(e.target.result);
+      if(data.loans) loans = data.loans;
+      if(data.txns) txns = data.txns;
+      if(data.budgets) budgets = data.budgets;
+      saveLoans(); saveTxns(); saveBudgets();
+      renderAll();
+      showToast('Data imported');
+    }catch(err){ showToast('Import file is not valid'); }
   };
   reader.readAsText(file);
   evt.target.value = '';
