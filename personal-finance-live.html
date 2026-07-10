@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="gu">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>મારો હિસાબ — Personal Finance</title>
+<title>My Ledger — Personal Finance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -165,25 +165,25 @@
 <div class="app">
   <nav class="sidebar">
     <div class="brand">
-      <div class="brand-mark gu">મારો હિસાબ</div>
+      <div class="brand-mark gu">My Ledger</div>
       <div class="brand-sub">Personal Finance</div>
     </div>
-    <div class="nav-item active gu" data-view="dashboard"><span class="ico">◆</span> ડેશબોર્ડ</div>
-    <div class="nav-item gu" data-view="loans"><span class="ico">₹</span> ઉધાર-લેણું</div>
-    <div class="nav-item gu" data-view="txns"><span class="ico">⇄</span> આવક-ખર્ચ</div>
-    <div class="nav-item gu" data-view="budget"><span class="ico">▤</span> બજેટ</div>
-    <div class="nav-item gu" data-view="reports"><span class="ico">◫</span> રિપોર્ટ</div>
+    <div class="nav-item active gu" data-view="dashboard"><span class="ico">◆</span> Dashboard</div>
+    <div class="nav-item gu" data-view="loans"><span class="ico">₹</span> Loans</div>
+    <div class="nav-item gu" data-view="txns"><span class="ico">⇄</span> Income & Expense</div>
+    <div class="nav-item gu" data-view="budget"><span class="ico">▤</span> Budget</div>
+    <div class="nav-item gu" data-view="reports"><span class="ico">◫</span> Reports</div>
     <div class="sidebar-foot gu">
-      ડેટા આ browser માં જ સેવ થાય છે<br>
-      <a href="#" onclick="exportData();return false;" style="color:var(--gold-soft);">⬇ ડેટા export કરો</a> &nbsp;|&nbsp;
-      <a href="#" onclick="document.getElementById('importFile').click();return false;" style="color:var(--gold-soft);">⬆ import</a>
+      Data is saved in this browser only<br>
+      <a href="#" onclick="exportData();return false;" style="color:var(--gold-soft);">⬇ Export data</a> &nbsp;|&nbsp;
+      <a href="#" onclick="document.getElementById('importFile').click();return false;" style="color:var(--gold-soft);">⬆ Import</a>
       <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
     </div>
   </nav>
 
   <main class="content">
     <div class="topbar">
-      <h1 class="gu" id="viewTitle">ડેશબોર્ડ</h1>
+      <h1 class="gu" id="viewTitle">Dashboard</h1>
       <div class="date gu" id="todayDate"></div>
     </div>
 
@@ -191,19 +191,19 @@
     <section class="view active" id="view-dashboard">
       <div class="cards">
         <div class="card">
-          <div class="label gu">આ મહિને આવક</div>
+          <div class="label gu">This Month's Income</div>
           <div class="value num pos" id="dashIncome">₹0</div>
         </div>
         <div class="card">
-          <div class="label gu">આ મહિને ખર્ચ</div>
+          <div class="label gu">This Month's Expense</div>
           <div class="value num neg" id="dashExpense">₹0</div>
         </div>
         <div class="card">
-          <div class="label gu">ચોખ્ખી બચત (આ મહિને)</div>
+          <div class="label gu">Net Savings (This Month)</div>
           <div class="value num" id="dashSavings">₹0</div>
         </div>
         <div class="card">
-          <div class="label gu">ઉધાર ચોખ્ખું બાકી</div>
+          <div class="label gu">Net Loan Balance</div>
           <div class="value num" id="dashLoanNet">₹0</div>
           <div class="sub gu" id="dashLoanNetSub"></div>
         </div>
@@ -211,19 +211,19 @@
 
       <div class="grid-2">
         <div class="panel">
-          <h3 class="gu">છેલ્લા 6 મહિના — આવક vs ખર્ચ</h3>
+          <h3 class="gu">Last 6 Months — Income vs Expense</h3>
           <canvas id="chartMonthly" height="180"></canvas>
         </div>
         <div class="panel">
-          <h3 class="gu">આ મહિનાનો ખર્ચ — કેટેગરી પ્રમાણે</h3>
+          <h3 class="gu">This Month's Expense — By Category</h3>
           <canvas id="chartCategory" height="180"></canvas>
         </div>
       </div>
 
       <div class="panel">
         <div class="panel-head">
-          <h3 class="gu">તાજેતરના વ્યવહાર</h3>
-          <button class="btn btn-ghost btn-sm gu" onclick="go('txns')">બધા જુઓ</button>
+          <h3 class="gu">Recent Transactions</h3>
+          <button class="btn btn-ghost btn-sm gu" onclick="go('txns')">View All</button>
         </div>
         <table id="dashRecentTable"><tbody></tbody></table>
       </div>
@@ -232,42 +232,42 @@
     <!-- LOANS -->
     <section class="view" id="view-loans">
       <div class="subnav">
-        <button class="on gu" data-sub="loans-entries">બધી એન્ટ્રી</button>
-        <button class="gu" data-sub="loans-people">વ્યક્તિ પ્રમાણે</button>
+        <button class="on gu" data-sub="loans-entries">All Entries</button>
+        <button class="gu" data-sub="loans-people">By Person</button>
       </div>
 
       <div id="loans-entries">
         <div class="panel-head" style="margin-bottom:14px;">
           <div></div>
-          <button class="btn btn-gold gu" onclick="openLoanModal()">+ નવી એન્ટ્રી</button>
+          <button class="btn btn-gold gu" onclick="openLoanModal()">+ New Entry</button>
         </div>
         <div class="panel">
           <table>
             <thead><tr>
-              <th class="gu">નામ</th><th class="gu">પ્રકાર</th><th class="right gu">રકમ</th>
-              <th class="gu">તારીખ</th><th class="gu">મોડ</th><th class="right gu">દર%</th><th class="right gu">દિવસો</th>
-              <th class="right gu">વ્યાજ</th><th class="right gu">કુલ</th><th class="gu">સ્થિતિ</th><th></th>
+              <th class="gu">Name</th><th class="gu">Type</th><th class="right gu">Amount</th>
+              <th class="gu">Date</th><th class="gu">Mode</th><th class="right gu">Rate%</th><th class="right gu">Days</th>
+              <th class="right gu">Interest</th><th class="right gu">Total</th><th class="gu">Status</th><th></th>
             </tr></thead>
             <tbody id="loansTable"></tbody>
           </table>
           <div class="empty gu" id="loansEmpty" style="display:none;">
-            <span class="big">₹</span>હજુ કોઈ એન્ટ્રી નથી. "+ નવી એન્ટ્રી" દબાવીને શરૂ કરો.
+            <span class="big">₹</span>No entries yet. Press "+ New Entry" to start.
           </div>
         </div>
       </div>
 
       <div id="loans-people" style="display:none;">
         <div class="panel">
-          <p class="gu" style="color:var(--ink-soft);font-size:12.5px;margin:0 0 10px;">કોઈપણ નામ પર ક્લિક કરો — એ વ્યક્તિની બધી અલગ-અલગ એન્ટ્રી જોવા માટે.</p>
+          <p class="gu" style="color:var(--ink-soft);font-size:12.5px;margin:0 0 10px;">Click any name to see all separate entries for that person.</p>
           <table>
             <thead><tr>
-              <th class="gu">નામ</th><th class="right gu">આપેલ (મૂળ)</th><th class="right gu">લીધેલ (મૂળ)</th>
-              <th class="right gu">વ્યાજ (આપેલ)</th><th class="right gu">વ્યાજ (લીધેલ)</th>
-              <th class="right gu">તમને મળવાના</th><th class="right gu">તમારે આપવાના</th><th class="right gu">ચોખ્ખું</th>
+              <th class="gu">Name</th><th class="right gu">Given (Principal)</th><th class="right gu">Taken (Principal)</th>
+              <th class="right gu">Interest (Given)</th><th class="right gu">Interest (Taken)</th>
+              <th class="right gu">Owed To You</th><th class="right gu">You Owe</th><th class="right gu">Net</th>
             </tr></thead>
             <tbody id="peopleTable"></tbody>
           </table>
-          <div class="empty gu" id="peopleEmpty" style="display:none;">કોઈ ડેટા નથી</div>
+          <div class="empty gu" id="peopleEmpty" style="display:none;">No data</div>
         </div>
       </div>
     </section>
@@ -276,18 +276,18 @@
     <section class="view" id="view-txns">
       <div class="panel-head" style="margin-bottom:14px;">
         <div class="seg" style="width:220px;" id="txnMonthNote"></div>
-        <button class="btn btn-gold gu" onclick="openTxnModal()">+ નવો વ્યવહાર</button>
+        <button class="btn btn-gold gu" onclick="openTxnModal()">+ New Transaction</button>
       </div>
       <div class="panel">
         <table>
           <thead><tr>
-            <th class="gu">તારીખ</th><th class="gu">પ્રકાર</th><th class="gu">કેટેગરી</th>
-            <th class="right gu">રકમ</th><th class="gu">નોંધ</th><th></th>
+            <th class="gu">Date</th><th class="gu">Type</th><th class="gu">Category</th>
+            <th class="right gu">Amount</th><th class="gu">Note</th><th></th>
           </tr></thead>
           <tbody id="txnsTable"></tbody>
         </table>
         <div class="empty gu" id="txnsEmpty" style="display:none;">
-          <span class="big">⇄</span>હજુ કોઈ વ્યવહાર નથી. "+ નવો વ્યવહાર" દબાવીને શરૂ કરો.
+          <span class="big">⇄</span>No transactions yet. Press "+ New Transaction" to start.
         </div>
       </div>
     </section>
@@ -296,12 +296,12 @@
     <section class="view" id="view-budget">
       <div class="panel-head" style="margin-bottom:14px;">
         <p class="gu" style="color:var(--ink-soft);font-size:13.5px;max-width:60ch;">
-          દરેક કેટેગરી માટે માસિક બજેટ સેટ કરો. આ મહિનાનો ખર્ચ એની સામે આપોઆપ સરખાવાશે.
+          Set a monthly budget for each category. This month's spending will be compared against it automatically.
         </p>
-        <button class="btn btn-gold gu" onclick="openBudgetModal()">+ બજેટ સેટ કરો</button>
+        <button class="btn btn-gold gu" onclick="openBudgetModal()">+ Set Budget</button>
       </div>
       <div class="panel" id="budgetPanel">
-        <div class="empty gu" id="budgetEmpty">કોઈ બજેટ સેટ નથી કર્યું</div>
+        <div class="empty gu" id="budgetEmpty">No budget set yet</div>
       </div>
     </section>
 
@@ -309,16 +309,16 @@
     <section class="view" id="view-reports">
       <div class="grid-2">
         <div class="panel">
-          <h3 class="gu">માસિક વલણ (12 મહિના)</h3>
+          <h3 class="gu">Monthly Trend (12 Months)</h3>
           <canvas id="chartTrend" height="200"></canvas>
         </div>
         <div class="panel">
-          <h3 class="gu">ઉધાર: આપેલ vs લીધેલ</h3>
+          <h3 class="gu">Loans: Given vs Taken</h3>
           <canvas id="chartLoans" height="200"></canvas>
         </div>
       </div>
       <div class="panel">
-        <h3 class="gu">ખર્ચ — કેટેગરી બ્રેકડાઉન (બધો સમય)</h3>
+        <h3 class="gu">Expenses — Category Breakdown (All Time)</h3>
         <canvas id="chartAllCategory" height="140"></canvas>
       </div>
     </section>
@@ -328,59 +328,59 @@
 <!-- LOAN MODAL -->
 <div class="overlay" id="loanOverlay">
   <div class="modal">
-    <h3 class="gu" id="loanModalTitle">નવી ઉધાર એન્ટ્રી</h3>
+    <h3 class="gu" id="loanModalTitle">New Loan Entry</h3>
     <input type="hidden" id="loanId">
     <div class="field">
-      <label class="gu">નામ</label>
-      <input type="text" id="loanName" list="nameList" placeholder="દા.ત. રમેશભાઈ પટેલ">
+      <label class="gu">Name</label>
+      <input type="text" id="loanName" list="nameList" placeholder="e.g. John Smith">
       <datalist id="nameList"></datalist>
     </div>
     <div class="field">
-      <label class="gu">પ્રકાર</label>
+      <label class="gu">Type</label>
       <div class="seg">
-        <button type="button" class="gu on" data-val="given" onclick="setLoanType('given')">આપેલ (Given)</button>
-        <button type="button" class="gu" data-val="taken" onclick="setLoanType('taken')">લીધેલ (Taken)</button>
+        <button type="button" class="gu on" data-val="given" onclick="setLoanType('given')">Given</button>
+        <button type="button" class="gu" data-val="taken" onclick="setLoanType('taken')">Taken</button>
       </div>
       <input type="hidden" id="loanType" value="given">
     </div>
     <div class="field-row">
-      <div class="field"><label class="gu">રકમ (₹)</label><input type="number" id="loanAmount" placeholder="0"></div>
-      <div class="field"><label class="gu">વ્યાજ દર % (વાર્ષિક)</label><input type="number" id="loanRate" placeholder="0"></div>
+      <div class="field"><label class="gu">Amount (₹)</label><input type="number" id="loanAmount" placeholder="0"></div>
+      <div class="field"><label class="gu">Interest Rate % (Annual)</label><input type="number" id="loanRate" placeholder="0"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label class="gu">તારીખ</label><input type="date" id="loanDate"></div>
-      <div class="field"><label class="gu">પરત/આજની તારીખ</label><input type="date" id="loanReturnDate"></div>
+      <div class="field"><label class="gu">Date</label><input type="date" id="loanDate"></div>
+      <div class="field"><label class="gu">Return/Today's Date</label><input type="date" id="loanReturnDate"></div>
     </div>
     <div class="field-row">
       <div class="field">
-        <label class="gu">ચુકવણી પ્રકાર (Payment Mode)</label>
+        <label class="gu">Payment Mode</label>
         <select id="loanMode" onchange="toggleRefField()">
-          <option value="Cash">રોકડ (Cash)</option>
-          <option value="Cheque">ચેક (Cheque)</option>
+          <option value="Cash">Cash</option>
+          <option value="Cheque">Cheque</option>
           <option value="NEFT">NEFT</option>
           <option value="RTGS">RTGS</option>
           <option value="UPI">UPI</option>
-          <option value="Bank Transfer">બેંક ટ્રાન્સફર</option>
-          <option value="Other">અન્ય</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Other">Other</option>
         </select>
       </div>
       <div class="field" id="loanRefField" style="display:none;">
-        <label class="gu">ચેક/સંદર્ભ નંબર</label>
-        <input type="text" id="loanRef" placeholder="દા.ત. ચેક નં. 123456">
+        <label class="gu">Cheque/Reference No.</label>
+        <input type="text" id="loanRef" placeholder="e.g. Cheque No. 123456">
       </div>
     </div>
     <div class="field">
-      <label class="gu">સ્થિતિ</label>
+      <label class="gu">Status</label>
       <select id="loanStatus">
         <option value="Pending">Pending</option>
         <option value="Paid">Paid</option>
         <option value="Partial">Partial</option>
       </select>
     </div>
-    <div class="field"><label class="gu">નોંધ</label><input type="text" id="loanNote" placeholder="વૈકલ્પિક"></div>
+    <div class="field"><label class="gu">Note</label><input type="text" id="loanNote" placeholder="Optional"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost gu" onclick="closeModal('loanOverlay')">રદ કરો</button>
-      <button class="btn gu" onclick="saveLoan()">સેવ કરો</button>
+      <button class="btn btn-ghost gu" onclick="closeModal('loanOverlay')">Cancel</button>
+      <button class="btn gu" onclick="saveLoan()">Save</button>
     </div>
   </div>
 </div>
@@ -388,29 +388,29 @@
 <!-- TXN MODAL -->
 <div class="overlay" id="txnOverlay">
   <div class="modal">
-    <h3 class="gu" id="txnModalTitle">નવો વ્યવહાર</h3>
+    <h3 class="gu" id="txnModalTitle">New Transaction</h3>
     <input type="hidden" id="txnId">
     <div class="field">
-      <label class="gu">પ્રકાર</label>
+      <label class="gu">Type</label>
       <div class="seg">
-        <button type="button" class="gu on" data-val="income" onclick="setTxnType('income')">આવક (Income)</button>
-        <button type="button" class="gu" data-val="expense" onclick="setTxnType('expense')">ખર્ચ (Expense)</button>
+        <button type="button" class="gu on" data-val="income" onclick="setTxnType('income')">Income</button>
+        <button type="button" class="gu" data-val="expense" onclick="setTxnType('expense')">Expense</button>
       </div>
       <input type="hidden" id="txnType" value="income">
     </div>
     <div class="field-row">
-      <div class="field"><label class="gu">રકમ (₹)</label><input type="number" id="txnAmount" placeholder="0"></div>
-      <div class="field"><label class="gu">તારીખ</label><input type="date" id="txnDate"></div>
+      <div class="field"><label class="gu">Amount (₹)</label><input type="number" id="txnAmount" placeholder="0"></div>
+      <div class="field"><label class="gu">Date</label><input type="date" id="txnDate"></div>
     </div>
     <div class="field">
-      <label class="gu">કેટેગરી</label>
-      <input type="text" id="txnCategory" list="catList" placeholder="દા.ત. પગાર, જમવાનું, ભાડું">
+      <label class="gu">Category</label>
+      <input type="text" id="txnCategory" list="catList" placeholder="e.g. Salary, Food, Rent">
       <datalist id="catList"></datalist>
     </div>
-    <div class="field"><label class="gu">નોંધ</label><input type="text" id="txnNote" placeholder="વૈકલ્પિક"></div>
+    <div class="field"><label class="gu">Note</label><input type="text" id="txnNote" placeholder="Optional"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost gu" onclick="closeModal('txnOverlay')">રદ કરો</button>
-      <button class="btn gu" onclick="saveTxn()">સેવ કરો</button>
+      <button class="btn btn-ghost gu" onclick="closeModal('txnOverlay')">Cancel</button>
+      <button class="btn gu" onclick="saveTxn()">Save</button>
     </div>
   </div>
 </div>
@@ -418,15 +418,15 @@
 <!-- BUDGET MODAL -->
 <div class="overlay" id="budgetOverlay">
   <div class="modal">
-    <h3 class="gu">બજેટ સેટ કરો</h3>
+    <h3 class="gu">Set Budget</h3>
     <div class="field">
-      <label class="gu">કેટેગરી</label>
-      <input type="text" id="budgetCategory" list="catList" placeholder="દા.ત. જમવાનું">
+      <label class="gu">Category</label>
+      <input type="text" id="budgetCategory" list="catList" placeholder="e.g. Food">
     </div>
-    <div class="field"><label class="gu">માસિક બજેટ (₹)</label><input type="number" id="budgetAmount" placeholder="0"></div>
+    <div class="field"><label class="gu">Monthly Budget (₹)</label><input type="number" id="budgetAmount" placeholder="0"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost gu" onclick="closeModal('budgetOverlay')">રદ કરો</button>
-      <button class="btn gu" onclick="saveBudget()">સેવ કરો</button>
+      <button class="btn btn-ghost gu" onclick="closeModal('budgetOverlay')">Cancel</button>
+      <button class="btn gu" onclick="saveBudget()">Save</button>
     </div>
   </div>
 </div>
@@ -434,18 +434,18 @@
 <!-- PERSON DETAIL MODAL -->
 <div class="overlay" id="personOverlay">
   <div class="modal" style="max-width:640px;">
-    <h3 class="gu" id="personModalName">વ્યક્તિની વિગત</h3>
+    <h3 class="gu" id="personModalName">Person Details</h3>
     <div id="personSummaryCards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;"></div>
     <table>
       <thead><tr>
-        <th class="gu">પ્રકાર</th><th class="right gu">રકમ</th><th class="gu">તારીખ</th>
-        <th class="gu">મોડ</th><th class="right gu">વ્યાજ</th><th class="right gu">કુલ</th><th class="gu">સ્થિતિ</th><th></th>
+        <th class="gu">Type</th><th class="right gu">Amount</th><th class="gu">Date</th>
+        <th class="gu">Mode</th><th class="right gu">Interest</th><th class="right gu">Total</th><th class="gu">Status</th><th></th>
       </tr></thead>
       <tbody id="personEntriesTable"></tbody>
     </table>
     <div class="modal-actions">
-      <button class="btn btn-ghost gu" onclick="closeModal('personOverlay')">બંધ કરો</button>
-      <button class="btn btn-gold gu" onclick="addEntryForPerson()">+ આ વ્યક્તિ માટે નવી એન્ટ્રી</button>
+      <button class="btn btn-ghost gu" onclick="closeModal('personOverlay')">Close</button>
+      <button class="btn btn-gold gu" onclick="addEntryForPerson()">+ New Entry for This Person</button>
     </div>
   </div>
 </div>
@@ -478,19 +478,19 @@ async function loadAll(){
 }
 async function saveLoans(){
   try{ localStorage.setItem('mh_loans', JSON.stringify(loans)); }
-  catch(e){ showToast('સેવ કરવામાં તકલીફ — ફરી પ્રયત્ન કરો'); }
+  catch(e){ showToast('Problem saving — please try again'); }
 }
 async function saveTxns(){
   try{ localStorage.setItem('mh_transactions', JSON.stringify(txns)); }
-  catch(e){ showToast('સેવ કરવામાં તકલીફ — ફરી પ્રયત્ન કરો'); }
+  catch(e){ showToast('Problem saving — please try again'); }
 }
 async function saveBudgets(){
   try{ localStorage.setItem('mh_budgets', JSON.stringify(budgets)); }
-  catch(e){ showToast('સેવ કરવામાં તકલીફ — ફરી પ્રયત્ન કરો'); }
+  catch(e){ showToast('Problem saving — please try again'); }
 }
 
 /* ---------------- NAV ---------------- */
-const titles = {dashboard:'ડેશબોર્ડ', loans:'ઉધાર-લેણું', txns:'આવક-ખર્ચ', budget:'બજેટ', reports:'રિપોર્ટ'};
+const titles = {dashboard:'Dashboard', loans:'Loans', txns:'Income & Expense', budget:'Budget', reports:'Reports'};
 function go(view){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -541,7 +541,7 @@ function toggleRefField(){
 window.toggleRefField = toggleRefField;
 
 function openLoanModal(id){
-  document.getElementById('loanModalTitle').textContent = id ? 'એન્ટ્રી એડિટ કરો' : 'નવી ઉધાર એન્ટ્રી';
+  document.getElementById('loanModalTitle').textContent = id ? 'Edit Entry' : 'New Loan Entry';
   const nameOpts = [...new Set(loans.map(l=>l.name))];
   document.getElementById('nameList').innerHTML = nameOpts.map(n=>`<option value="${n}">`).join('');
   if(id){
@@ -576,8 +576,8 @@ function openLoanModal(id){
 function saveLoan(){
   const name = document.getElementById('loanName').value.trim();
   const amount = parseFloat(document.getElementById('loanAmount').value);
-  if(!name){ showToast('નામ લખો'); return; }
-  if(!amount || amount<=0){ showToast('યોગ્ય રકમ લખો'); return; }
+  if(!name){ showToast('Enter a name'); return; }
+  if(!amount || amount<=0){ showToast('Enter a valid amount'); return; }
   const id = document.getElementById('loanId').value;
   const obj = {
     id: id || uid(),
@@ -597,17 +597,17 @@ function saveLoan(){
   saveLoans();
   closeModal('loanOverlay');
   renderLoans(); renderDashboard();
-  showToast('એન્ટ્રી સેવ થઈ');
+  showToast('Entry saved');
 }
 function deleteLoan(id){
-  if(!confirm('આ એન્ટ્રી ડિલીટ કરવી છે?')) return;
+  if(!confirm('Delete this entry?')) return;
   loans = loans.filter(l=>l.id!==id);
   saveLoans(); renderLoans(); renderDashboard();
   if(currentPersonView) openPersonDetail(currentPersonView);
 }
 
 function openTxnModal(id){
-  document.getElementById('txnModalTitle').textContent = id ? 'વ્યવહાર એડિટ કરો' : 'નવો વ્યવહાર';
+  document.getElementById('txnModalTitle').textContent = id ? 'Edit Transaction' : 'New Transaction';
   const catOpts = [...new Set(txns.map(t=>t.category))];
   document.getElementById('catList').innerHTML = catOpts.map(c=>`<option value="${c}">`).join('');
   if(id){
@@ -631,8 +631,8 @@ function openTxnModal(id){
 function saveTxn(){
   const amount = parseFloat(document.getElementById('txnAmount').value);
   const category = document.getElementById('txnCategory').value.trim();
-  if(!amount || amount<=0){ showToast('યોગ્ય રકમ લખો'); return; }
-  if(!category){ showToast('કેટેગરી લખો'); return; }
+  if(!amount || amount<=0){ showToast('Enter a valid amount'); return; }
+  if(!category){ showToast('Enter a category'); return; }
   const id = document.getElementById('txnId').value;
   const obj = {
     id: id || uid(),
@@ -647,10 +647,10 @@ function saveTxn(){
   saveTxns();
   closeModal('txnOverlay');
   renderTxns(); renderDashboard(); renderBudget();
-  showToast('વ્યવહાર સેવ થયો');
+  showToast('Transaction saved');
 }
 function deleteTxn(id){
-  if(!confirm('આ વ્યવહાર ડિલીટ કરવો છે?')) return;
+  if(!confirm('Delete this transaction?')) return;
   txns = txns.filter(t=>t.id!==id);
   saveTxns(); renderTxns(); renderDashboard(); renderBudget();
 }
@@ -665,12 +665,12 @@ function openBudgetModal(){
 function saveBudget(){
   const cat = document.getElementById('budgetCategory').value.trim();
   const amt = parseFloat(document.getElementById('budgetAmount').value);
-  if(!cat || !amt || amt<=0){ showToast('કેટેગરી અને રકમ બરાબર લખો'); return; }
+  if(!cat || !amt || amt<=0){ showToast('Enter a valid category and amount'); return; }
   budgets[cat] = amt;
   saveBudgets();
   closeModal('budgetOverlay');
   renderBudget();
-  showToast('બજેટ સેવ થયું');
+  showToast('Budget saved');
 }
 function deleteBudget(cat){
   delete budgets[cat];
@@ -681,7 +681,7 @@ window.saveLoan=saveLoan; window.saveTxn=saveTxn; window.saveBudget=saveBudget;
 window.deleteLoan=deleteLoan; window.deleteTxn=deleteTxn; window.deleteBudget=deleteBudget;
 window.closeModal=closeModal; window.setLoanType=setLoanType; window.setTxnType=setTxnType; window.go=go;
 
-const modeLabel = m => ({Cash:'રોકડ',Cheque:'ચેક',NEFT:'NEFT',RTGS:'RTGS',UPI:'UPI','Bank Transfer':'બેંક ટ્રા.',Other:'અન્ય'}[m] || m || 'રોકડ');
+const modeLabel = m => ({Cash:'Cash',Cheque:'Cheque',NEFT:'NEFT',RTGS:'RTGS',UPI:'UPI','Bank Transfer':'Bank Transfer',Other:'Other'}[m] || m || 'Cash');
 
 /* ---------------- RENDER: LOANS ---------------- */
 function renderLoans(){
@@ -693,7 +693,7 @@ function renderLoans(){
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${l.name}</td>
-      <td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'આપેલ':'લીધેલ'}</span></td>
+      <td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span></td>
       <td class="right num">${fmt(l.amount)}</td>
       <td class="num">${l.date}</td>
       <td style="font-size:12px;">${modeLabel(l.mode)}${l.ref?`<div style="color:var(--ink-soft);font-size:11px;">${l.ref}</div>`:''}</td>
@@ -755,9 +755,9 @@ function openPersonDetail(name){
   });
   const net = (givenAmt+givenInt) - (takenAmt+takenInt);
   document.getElementById('personSummaryCards').innerHTML = `
-    <div class="card" style="padding:12px 14px;"><div class="label gu">તમને મળવાના</div><div class="value num pos" style="font-size:18px;">${fmt(givenAmt+givenInt)}</div></div>
-    <div class="card" style="padding:12px 14px;"><div class="label gu">તમારે આપવાના</div><div class="value num neg" style="font-size:18px;">${fmt(takenAmt+takenInt)}</div></div>
-    <div class="card" style="grid-column:1/3;padding:12px 14px;"><div class="label gu">ચોખ્ખું બાકી</div><div class="value num ${net>=0?'pos':'neg'}" style="font-size:20px;">${fmt(net)} ${net>=0?'(તમને મળવાના)':'(તમારે આપવાના)'}</div></div>
+    <div class="card" style="padding:12px 14px;"><div class="label gu">Owed To You</div><div class="value num pos" style="font-size:18px;">${fmt(givenAmt+givenInt)}</div></div>
+    <div class="card" style="padding:12px 14px;"><div class="label gu">You Owe</div><div class="value num neg" style="font-size:18px;">${fmt(takenAmt+takenInt)}</div></div>
+    <div class="card" style="grid-column:1/3;padding:12px 14px;"><div class="label gu">Net Balance</div><div class="value num ${net>=0?'pos':'neg'}" style="font-size:20px;">${fmt(net)} ${net>=0?'(Owed To You)':'(You Owe)'}</div></div>
   `;
   const tbody = document.getElementById('personEntriesTable');
   tbody.innerHTML = '';
@@ -765,7 +765,7 @@ function openPersonDetail(name){
     const c = loanCalc(l);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'આપેલ':'લીધેલ'}</span></td>
+      <td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span></td>
       <td class="right num">${fmt(l.amount)}</td>
       <td class="num">${l.date}</td>
       <td style="font-size:12px;">${modeLabel(l.mode)}${l.ref?`<div style="color:var(--ink-soft);font-size:11px;">${l.ref}</div>`:''}</td>
@@ -799,7 +799,7 @@ function renderTxns(){
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="num">${t.date}</td>
-      <td><span class="tag tag-${t.type}">${t.type==='income'?'આવક':'ખર્ચ'}</span></td>
+      <td><span class="tag tag-${t.type}">${t.type==='income'?'Income':'Expense'}</span></td>
       <td>${t.category}</td>
       <td class="right num" style="font-weight:600;color:${t.type==='income'?'var(--green)':'var(--red)'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</td>
       <td style="color:var(--ink-soft);font-size:12.5px;">${t.note||''}</td>
@@ -859,7 +859,7 @@ function renderDashboard(){
   const net = oweYou-oweThem;
   const netEl = document.getElementById('dashLoanNet');
   netEl.textContent = fmt(Math.abs(net)); netEl.className='value num '+(net>=0?'pos':'neg');
-  document.getElementById('dashLoanNetSub').textContent = net>=0 ? 'લોકો તમને આપવાના બાકી' : 'તમારે લોકોને આપવાના બાકી';
+  document.getElementById('dashLoanNetSub').textContent = net>=0 ? 'People owe you' : 'You owe people';
 
   const tbody = document.getElementById('dashRecentTable');
   tbody.innerHTML='';
@@ -870,7 +870,7 @@ function renderDashboard(){
     tbody.appendChild(tr);
   });
   if(!txns.length){
-    tbody.innerHTML = '<tr><td colspan="3" class="empty gu">હજુ કોઈ વ્યવહાર નથી</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" class="empty gu">No transactions yet</td></tr>';
   }
 }
 
@@ -896,7 +896,7 @@ function last12Months(){
   return arr;
 }
 const guMonth = m => {
-  const names = ['જાન્યુ','ફેબ્રુ','માર્ચ','એપ્રિલ','મે','જૂન','જુલાઈ','ઑગસ્ટ','સપ્ટે','ઑક્ટો','નવે','ડિસે'];
+  const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const idx = parseInt(m.slice(5,7))-1;
   return names[idx];
 };
@@ -910,8 +910,8 @@ function renderDashboardCharts(){
     type:'bar',
     data:{ labels: months.map(guMonth),
       datasets:[
-        {label:'આવક', data:inc, backgroundColor:'#2E7D4F', borderRadius:5},
-        {label:'ખર્ચ', data:exp, backgroundColor:'#B0432E', borderRadius:5}
+        {label:'Income', data:inc, backgroundColor:'#2E7D4F', borderRadius:5},
+        {label:'Expense', data:exp, backgroundColor:'#B0432E', borderRadius:5}
       ]},
     options:{responsive:true, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter'}}}}, scales:{y:{beginAtZero:true}}}
   });
@@ -923,7 +923,7 @@ function renderDashboardCharts(){
   destroyChart('category');
   chartInstances.category = new Chart(document.getElementById('chartCategory'), {
     type:'doughnut',
-    data:{ labels: cats.length?cats:['કોઈ ડેટા નથી'],
+    data:{ labels: cats.length?cats:['No data'],
       datasets:[{ data: cats.length?cats.map(c=>catMap[c]):[1],
         backgroundColor:['#0F5257','#C08A2E','#B0432E','#3B4E9E','#8A5A00','#5B6660','#2E7D4F','#A8791F'] }]},
     options:{responsive:true, plugins:{legend:{position:'bottom', labels:{font:{family:'Inter'}, boxWidth:12}}}}
@@ -939,8 +939,8 @@ function renderReportCharts(){
     type:'line',
     data:{ labels: months.map(guMonth),
       datasets:[
-        {label:'આવક', data:inc, borderColor:'#2E7D4F', backgroundColor:'rgba(46,125,79,0.12)', fill:true, tension:.3},
-        {label:'ખર્ચ', data:exp, borderColor:'#B0432E', backgroundColor:'rgba(176,67,46,0.12)', fill:true, tension:.3}
+        {label:'Income', data:inc, borderColor:'#2E7D4F', backgroundColor:'rgba(46,125,79,0.12)', fill:true, tension:.3},
+        {label:'Expense', data:exp, borderColor:'#B0432E', backgroundColor:'rgba(176,67,46,0.12)', fill:true, tension:.3}
       ]},
     options:{responsive:true, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true}}}
   });
@@ -950,7 +950,7 @@ function renderReportCharts(){
   destroyChart('loans');
   chartInstances.loans = new Chart(document.getElementById('chartLoans'), {
     type:'bar',
-    data:{ labels:['આપેલ (તમને મળવાના)','લીધેલ (તમારે આપવાના)'],
+    data:{ labels:['Given (owed to you)','Taken (you owe)'],
       datasets:[{ data:[givenTotal, takenTotal], backgroundColor:['#2E7D4F','#B0432E'], borderRadius:6 }]},
     options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}}
   });
@@ -961,7 +961,7 @@ function renderReportCharts(){
   destroyChart('allcat');
   chartInstances.allcat = new Chart(document.getElementById('chartAllCategory'), {
     type:'bar',
-    data:{ labels: cats.length?cats:['કોઈ ડેટા નથી'],
+    data:{ labels: cats.length?cats:['No data'],
       datasets:[{ data: cats.length?cats.map(c=>catMap[c]):[0], backgroundColor:'#0F5257', borderRadius:5 }]},
     options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true}}}
   });
@@ -974,7 +974,7 @@ function exportData(){
   const a = document.createElement('a');
   a.href = url; a.download = 'maro-hisab-backup-'+todayStr()+'.json';
   a.click(); URL.revokeObjectURL(url);
-  showToast('ડેટા export થયો');
+  showToast('Data exported');
 }
 function importData(evt){
   const file = evt.target.files[0];
@@ -988,8 +988,8 @@ function importData(evt){
       if(data.budgets) budgets = data.budgets;
       saveLoans(); saveTxns(); saveBudgets();
       renderAll();
-      showToast('ડેટા import થયો');
-    }catch(err){ showToast('Import ફાઈલ બરાબર નથી'); }
+      showToast('Data imported');
+    }catch(err){ showToast('Import file is not valid'); }
   };
   reader.readAsText(file);
   evt.target.value = '';
@@ -1000,7 +1000,7 @@ window.exportData = exportData; window.importData = importData;
 function renderAll(){
   renderLoans(); renderTxns(); renderBudget(); renderDashboard(); renderDashboardCharts();
 }
-document.getElementById('todayDate').textContent = new Date().toLocaleDateString('gu-IN', {year:'numeric',month:'long',day:'numeric'});
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', {year:'numeric',month:'long',day:'numeric'});
 loadAll();
 </script>
 </body>
