@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root{
     --paper:#F6F2E9;
@@ -174,7 +177,8 @@
     <div class="nav-item gu" data-view="budget"><span class="ico">▤</span> Budget</div>
     <div class="nav-item gu" data-view="reports"><span class="ico">◫</span> Reports</div>
     <div class="sidebar-foot gu">
-      Data is saved in this browser only<br>
+      <div id="syncStatus" style="margin-bottom:8px;">○ Local only (not synced)</div>
+      <a href="#" onclick="openSyncModal();return false;" style="color:var(--gold-soft);">⚙ Sync Settings</a><br>
       <a href="#" onclick="exportData();return false;" style="color:var(--gold-soft);">⬇ Export data</a> &nbsp;|&nbsp;
       <a href="#" onclick="document.getElementById('importFile').click();return false;" style="color:var(--gold-soft);">⬆ Import</a>
       <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
@@ -504,6 +508,56 @@
   </div>
 </div>
 
+<!-- SYNC SETTINGS MODAL (private, login-based) -->
+<div class="overlay" id="syncOverlay">
+  <div class="modal" style="max-width:520px;">
+    <h3 class="gu">Private Sync (Login)</h3>
+    <p style="color:var(--ink-soft);font-size:12.5px;margin:-8px 0 14px;">
+      Only someone signed in with your exact email + password can ever read or write this data —
+      not even someone who has your Firebase config. Set up once, then log in with the same
+      email/password on every device.
+    </p>
+
+    <div id="syncStep1">
+      <div class="field">
+        <label class="gu">Firebase Config (paste the firebaseConfig object — one-time setup)</label>
+        <textarea id="syncConfig" rows="5" style="font-family:'JetBrains Mono',monospace;font-size:12px;" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'></textarea>
+      </div>
+      <div class="modal-actions" style="justify-content:flex-start;">
+        <button class="btn btn-gold gu" onclick="saveFirebaseConfig()">Save Config</button>
+      </div>
+    </div>
+
+    <div id="syncStep2" style="margin-top:6px;">
+      <div id="loggedOutBox">
+        <div class="field-row">
+          <div class="field"><label class="gu">Email</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
+          <div class="field"><label class="gu">Password</label><input type="password" id="authPassword" placeholder="min 6 characters"></div>
+        </div>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button class="btn btn-ghost gu" onclick="doSignUp()">Sign Up (first time)</button>
+          <button class="btn gu" onclick="doSignIn()">Sign In</button>
+        </div>
+      </div>
+      <div id="loggedInBox" style="display:none;">
+        <div class="field">
+          <label class="gu">Signed in as</label>
+          <div id="loggedInEmail" style="font-weight:600;padding:8px 0;"></div>
+        </div>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button class="btn btn-ghost gu" onclick="doSignOut()">Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="syncModalStatus" style="font-size:12.5px;margin:10px 0 0;color:var(--ink-soft);"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost gu" onclick="closeModal('syncOverlay')">Close</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -523,25 +577,161 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-/* ---------------- STORAGE (localStorage - works on any hosted site) ---------------- */
+/* ---------------- STORAGE (localStorage + optional Firebase cloud sync) ---------------- */
 async function loadAll(){
   try{ loans = JSON.parse(localStorage.getItem('mh_loans') || '[]'); }catch(e){ loans = []; }
   try{ txns = JSON.parse(localStorage.getItem('mh_transactions') || '[]'); }catch(e){ txns = []; }
   try{ budgets = JSON.parse(localStorage.getItem('mh_budgets') || '{}'); }catch(e){ budgets = {}; }
   renderAll();
+  initFirebase();
 }
 async function saveLoans(){
   try{ localStorage.setItem('mh_loans', JSON.stringify(loans)); }
   catch(e){ showToast('Problem saving — please try again'); }
+  pushToCloud();
 }
 async function saveTxns(){
   try{ localStorage.setItem('mh_transactions', JSON.stringify(txns)); }
   catch(e){ showToast('Problem saving — please try again'); }
+  pushToCloud();
 }
 async function saveBudgets(){
   try{ localStorage.setItem('mh_budgets', JSON.stringify(budgets)); }
   catch(e){ showToast('Problem saving — please try again'); }
+  pushToCloud();
 }
+
+/* ---------------- FIREBASE CLOUD SYNC (private, login-based) ---------------- */
+let fbApp = null, fbDb = null, fbAuth = null, fbUnsub = null, fbSaveTimer = null, fbApplyingRemote = false, fbUser = null;
+
+function updateSyncStatus(state){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  if(state==='on') el.innerHTML = '<span style="color:#8FD9A8;">● Synced & private (' + (fbUser?fbUser.email:'') + ')</span>';
+  else if(state==='connecting') el.textContent = '○ Connecting…';
+  else if(state==='error') el.innerHTML = '<span style="color:#E39A8A;">● Sync error — check settings</span>';
+  else if(state==='needlogin') el.innerHTML = '<span style="color:var(--gold-soft);">○ Set up private sync →</span>';
+  else el.textContent = '○ Local only (not synced)';
+}
+
+// Called once on page load — sets up the Firebase app (no login yet) if a config was saved before.
+function initFirebase(){
+  const cfgStr = localStorage.getItem('mh_firebase_config');
+  if(!cfgStr){ updateSyncStatus('off'); return; }
+  try{
+    const cfg = JSON.parse(cfgStr);
+    if(!fbApp){ fbApp = firebase.initializeApp(cfg); }
+    fbDb = firebase.firestore();
+    fbAuth = firebase.auth();
+    updateSyncStatus('needlogin');
+    fbAuth.onAuthStateChanged(user=>{
+      fbUser = user;
+      if(user){
+        listenToCloud(user.uid);
+        updateSyncStatus('on');
+      }else{
+        if(fbUnsub){ fbUnsub(); fbUnsub=null; }
+        updateSyncStatus('needlogin');
+      }
+      refreshSyncModalUI();
+    });
+  }catch(e){ updateSyncStatus('error'); }
+}
+
+function listenToCloud(uid){
+  if(fbUnsub) fbUnsub();
+  const docRef = fbDb.collection('maro-hisab-users').doc(uid);
+  docRef.get().then(snap=>{
+    if(!snap.exists){
+      // first login on this account — seed the cloud with whatever is on this device
+      docRef.set({ loans, txns, budgets, updatedAt: new Date().toISOString() });
+    }
+  });
+  fbUnsub = docRef.onSnapshot(snap=>{
+    if(!snap.exists) return;
+    const data = snap.data();
+    fbApplyingRemote = true;
+    loans = data.loans || [];
+    txns = data.txns || [];
+    budgets = data.budgets || {};
+    localStorage.setItem('mh_loans', JSON.stringify(loans));
+    localStorage.setItem('mh_transactions', JSON.stringify(txns));
+    localStorage.setItem('mh_budgets', JSON.stringify(budgets));
+    renderAll();
+    fbApplyingRemote = false;
+    updateSyncStatus('on');
+  }, ()=> updateSyncStatus('error'));
+}
+
+function pushToCloud(){
+  if(!fbDb || !fbUser || fbApplyingRemote) return;
+  clearTimeout(fbSaveTimer);
+  fbSaveTimer = setTimeout(()=>{
+    fbDb.collection('maro-hisab-users').doc(fbUser.uid)
+      .set({ loans, txns, budgets, updatedAt: new Date().toISOString() })
+      .catch(()=> updateSyncStatus('error'));
+  }, 500);
+}
+
+function openSyncModal(){
+  document.getElementById('syncConfig').value = localStorage.getItem('mh_firebase_config') || '';
+  refreshSyncModalUI();
+  openModal('syncOverlay');
+}
+function refreshSyncModalUI(){
+  const hasConfig = !!localStorage.getItem('mh_firebase_config');
+  document.getElementById('syncStep2').style.display = hasConfig ? '' : 'none';
+  if(fbUser){
+    document.getElementById('loggedOutBox').style.display = 'none';
+    document.getElementById('loggedInBox').style.display = '';
+    document.getElementById('loggedInEmail').textContent = fbUser.email;
+    document.getElementById('syncModalStatus').textContent = 'Private sync is active. Log in with the same email/password on your other device.';
+  }else{
+    document.getElementById('loggedOutBox').style.display = '';
+    document.getElementById('loggedInBox').style.display = 'none';
+    document.getElementById('syncModalStatus').textContent = hasConfig
+      ? 'Sign up (first device) or sign in (other devices) with the same email/password.'
+      : 'Paste your Firebase config first.';
+  }
+}
+function saveFirebaseConfig(){
+  const cfgRaw = document.getElementById('syncConfig').value.trim();
+  if(!cfgRaw){ showToast('Paste your Firebase config first'); return; }
+  try{ JSON.parse(cfgRaw); }
+  catch(e){ showToast('Firebase Config is not valid JSON'); return; }
+  localStorage.setItem('mh_firebase_config', cfgRaw);
+  showToast('Config saved');
+  initFirebase();
+  refreshSyncModalUI();
+}
+function doSignUp(){
+  const email = document.getElementById('authEmail').value.trim();
+  const pw = document.getElementById('authPassword').value;
+  if(!email || pw.length<6){ showToast('Enter email and a password (6+ chars)'); return; }
+  if(!fbAuth){ showToast('Save Firebase config first'); return; }
+  fbAuth.createUserWithEmailAndPassword(email, pw)
+    .then(()=> showToast('Account created — you are signed in'))
+    .catch(err=> showToast(err.message));
+}
+function doSignIn(){
+  const email = document.getElementById('authEmail').value.trim();
+  const pw = document.getElementById('authPassword').value;
+  if(!email || !pw){ showToast('Enter email and password'); return; }
+  if(!fbAuth){ showToast('Save Firebase config first'); return; }
+  fbAuth.signInWithEmailAndPassword(email, pw)
+    .then(()=> showToast('Signed in'))
+    .catch(err=> showToast(err.message));
+}
+function doSignOut(){
+  if(fbAuth) fbAuth.signOut();
+  showToast('Signed out — data on this device stays saved locally');
+}
+window.openSyncModal = openSyncModal;
+window.saveFirebaseConfig = saveFirebaseConfig;
+window.doSignUp = doSignUp;
+window.doSignIn = doSignIn;
+window.doSignOut = doSignOut;
+
 
 /* ---------------- NAV ---------------- */
 const titles = {dashboard:'Dashboard', loans:'Loans', txns:'Income & Expense', budget:'Budget', reports:'Reports'};
