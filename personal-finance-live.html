@@ -314,14 +314,11 @@
     <div class="nav-item gu" data-view="budget"><span class="ico">▤</span> Budget</div>
     <div class="nav-item gu" data-view="reminders"><span class="ico">🔔</span> Reminders <span class="badge-count reminder-badge" style="display:none;">0</span></div>
     <div class="nav-item gu" data-view="reports"><span class="ico">◫</span> Reports</div>
+    <div class="nav-item gu" data-view="calculators"><span class="ico">🧮</span> Calculators</div>
     <div class="nav-item gu" data-view="diagnostics"><span class="ico">🧪</span> Diagnostics</div>
+    <div class="nav-item gu" data-view="profile"><span class="ico">👤</span> Profile</div>
     <div class="sidebar-foot gu">
-      <div class="sync-status-text" style="margin-bottom:10px;">○ Local only (not synced)</div>
-      <a href="#" onclick="toggleTheme();return false;" style="color:var(--gold-soft);" class="theme-toggle-text">🌙 Dark Mode</a><br>
-      <a href="#" onclick="togglePinSetup();return false;" style="color:var(--gold-soft);" class="pin-lock-text">🔒 Set PIN Lock</a><br>
-      <a href="#" onclick="openSyncModal();return false;" style="color:var(--gold-soft);">⚙ Sync / Login</a><br>
-      <a href="#" onclick="exportData();return false;" style="color:var(--gold-soft);">⬇ Export</a> &nbsp;|&nbsp;
-      <a href="#" onclick="document.getElementById('importFile').click();return false;" style="color:var(--gold-soft);">⬆ Import</a>
+      <a href="#" onclick="go('profile');return false;" class="sync-status-text" style="color:var(--gold-soft);">○ Local only (not synced)</a>
       <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
     </div>
   </nav>
@@ -347,14 +344,11 @@
         <span class="badge-count reminder-badge" style="display:none;margin-left:auto;">0</span>
       </div>
       <div class="more-item gu" onclick="closeMoreSheet();go('reports')"><span class="ico">◫</span>Reports</div>
+      <div class="more-item gu" onclick="closeMoreSheet();go('calculators')"><span class="ico">🧮</span>Calculators</div>
       <div class="more-item gu" onclick="closeMoreSheet();go('diagnostics')"><span class="ico">🧪</span>Diagnostics</div>
+      <div class="more-item gu" onclick="closeMoreSheet();go('profile')"><span class="ico">👤</span>Profile</div>
       <hr style="border:none;border-top:1px solid var(--line);margin:8px 4px;">
-      <div class="more-item gu" onclick="toggleTheme()"><span class="ico">🌙</span><span class="theme-toggle-text">Dark Mode</span></div>
-      <div class="more-item gu" onclick="togglePinSetup()"><span class="ico">🔒</span><span class="pin-lock-text">Set PIN Lock</span></div>
-      <div class="more-item gu" onclick="closeMoreSheet();openSyncModal()"><span class="ico">⚙</span>Sync / Login</div>
-      <div class="more-item gu" onclick="exportData()"><span class="ico">⬇</span>Export Data</div>
-      <div class="more-item gu" onclick="document.getElementById('importFile').click()"><span class="ico">⬆</span>Import Data</div>
-      <div class="sync-status-text gu" style="padding:12px 16px 4px;font-size:12px;color:var(--ink-soft);">○ Local only (not synced)</div>
+      <div class="more-item gu sync-status-text" style="color:var(--ink-soft);font-size:13px;" onclick="closeMoreSheet();go('profile')">○ Local only (not synced)</div>
     </div>
   </div>
 
@@ -455,6 +449,7 @@
 
     <!-- INCOME / EXPENSE -->
     <section class="view" id="view-txns">
+      <div class="cards" id="txnSummaryCards" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:18px;"></div>
       <div class="panel-head" style="margin-bottom:14px;">
         <input type="text" id="txnSearch" class="search-box" placeholder="🔍 Search by category, note…" oninput="renderTxns()">
         <button class="btn btn-gold gu" onclick="openTxnModal()">+ New Transaction</button>
@@ -532,6 +527,100 @@
       </div>
     </section>
 
+    <!-- FINANCIAL CALCULATORS -->
+    <section class="view" id="view-calculators">
+      <div class="panel-head" style="margin-bottom:14px;">
+        <h3 id="calcHubTitle" class="gu" style="margin:0;">Financial Calculators</h3>
+        <button class="btn btn-ghost btn-sm gu" id="calcBackBtn" style="display:none;" onclick="resetCalcHub()">← Categories</button>
+      </div>
+
+      <div id="calcCategoryGrid" class="cards" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+        <div class="card card-accent" style="--accent:var(--teal);cursor:pointer;" onclick="openCalcTool('sip','SIP Projection')">
+          <div class="card-icon" style="background:linear-gradient(135deg,var(--teal),#2FA8AE);">📈</div>
+          <div class="label gu">Investment</div><div class="value" style="font-size:18px;">SIP Calculator</div>
+        </div>
+        <div class="card card-accent" style="--accent:var(--gold);cursor:pointer;" onclick="openCalcTool('emi','Loan EMI Simulator')">
+          <div class="card-icon" style="background:linear-gradient(135deg,var(--gold),#E0B85A);">🏦</div>
+          <div class="label gu">Banking</div><div class="value" style="font-size:18px;">EMI Simulator</div>
+        </div>
+        <div class="card card-accent" style="--accent:var(--green);cursor:pointer;" onclick="openCalcTool('gst','GST / Tax Splitter')">
+          <div class="card-icon" style="background:linear-gradient(135deg,var(--green),#3FA868);">🧾</div>
+          <div class="label gu">Business</div><div class="value" style="font-size:18px;">GST Calculator</div>
+        </div>
+        <div class="card card-accent" style="--accent:var(--teal);cursor:pointer;" onclick="openCalcTool('si','Simple Interest')">
+          <div class="card-icon" style="background:linear-gradient(135deg,var(--teal),#2FA8AE);">₹</div>
+          <div class="label gu">Finance</div><div class="value" style="font-size:18px;">Simple Interest</div>
+        </div>
+        <div class="card card-accent" style="--accent:var(--red);cursor:pointer;" onclick="openCalcTool('pct','Percentage Calculator')">
+          <div class="card-icon" style="background:linear-gradient(135deg,var(--red),#C85A3E);">%</div>
+          <div class="label gu">Math</div><div class="value" style="font-size:18px;">Percentage</div>
+        </div>
+        <div class="card card-accent" style="--accent:var(--gold);cursor:pointer;" onclick="openCalcTool('mil','Mileage & Trip Cost')">
+          <div class="card-icon" style="background:linear-gradient(135deg,var(--gold),#E0B85A);">🚗</div>
+          <div class="label gu">Auto</div><div class="value" style="font-size:18px;">Mileage Cost</div>
+        </div>
+      </div>
+
+      <div id="activeCalcArea" style="display:none;max-width:600px;">
+        <div id="calc-sip" class="panel calc-panel" style="display:none;">
+          <div class="field"><label class="gu">Monthly Investment (₹)</label><input type="number" id="sipAmount" value="5000" oninput="calcSIP()"></div>
+          <div class="field-row">
+            <div class="field"><label class="gu">Return Rate (% p.a.)</label><input type="number" id="sipRate" value="12" oninput="calcSIP()"></div>
+            <div class="field"><label class="gu">Years</label><input type="number" id="sipYears" value="10" oninput="calcSIP()"></div>
+          </div>
+          <div id="sipResult" class="num" style="margin-top:16px;font-weight:600;color:var(--teal-deep);line-height:1.8;"></div>
+        </div>
+        <div id="calc-emi" class="panel calc-panel" style="display:none;">
+          <div class="field"><label class="gu">Loan Amount (₹)</label><input type="number" id="emiAmount" value="500000" oninput="calcEMI()"></div>
+          <div class="field-row">
+            <div class="field"><label class="gu">Interest Rate (% p.a.)</label><input type="number" id="emiRate" value="9" oninput="calcEMI()"></div>
+            <div class="field"><label class="gu">Tenure (Years)</label><input type="number" id="emiYears" value="5" oninput="calcEMI()"></div>
+          </div>
+          <div id="emiResult" class="num" style="margin-top:16px;font-weight:600;color:var(--teal-deep);line-height:1.8;"></div>
+        </div>
+        <div id="calc-gst" class="panel calc-panel" style="display:none;">
+          <div class="field-row">
+            <div class="field"><label class="gu">Amount (₹)</label><input type="number" id="gstAmount" value="10000" oninput="calcGST()"></div>
+            <div class="field"><label class="gu">GST Rate (%)</label>
+              <select id="gstRate" onchange="calcGST()"><option value="5">5%</option><option value="12">12%</option><option value="18" selected>18%</option><option value="28">28%</option></select>
+            </div>
+          </div>
+          <div class="field"><label class="gu">Mode</label>
+            <select id="gstType" onchange="calcGST()"><option value="add">Add GST (+)</option><option value="remove">Remove GST (Inclusive)</option></select>
+          </div>
+          <div id="gstResult" class="num" style="margin-top:16px;font-weight:600;color:var(--teal-deep);line-height:1.8;"></div>
+        </div>
+        <div id="calc-si" class="panel calc-panel" style="display:none;">
+          <div class="field-row">
+            <div class="field"><label class="gu">Principal (₹)</label><input type="number" id="siAmount" value="50000" oninput="calcSI()"></div>
+            <div class="field"><label class="gu">Rate (% p.a.)</label><input type="number" id="siRate" value="2" oninput="calcSI()"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="gu">Time Duration</label><input type="number" id="siTime" value="6" oninput="calcSI()"></div>
+            <div class="field"><label class="gu">Time Format</label>
+              <select id="siType" onchange="calcSI()"><option value="years">Years</option><option value="months" selected>Months</option><option value="days">Days</option></select>
+            </div>
+          </div>
+          <div id="siResult" class="num" style="margin-top:16px;font-weight:600;color:var(--teal-deep);line-height:1.8;"></div>
+        </div>
+        <div id="calc-pct" class="panel calc-panel" style="display:none;">
+          <div class="field-row">
+            <div class="field"><label class="gu">Base Value</label><input type="number" id="pctBase" value="2500" oninput="calcPct()"></div>
+            <div class="field"><label class="gu">Percentage (%)</label><input type="number" id="pctRate" value="15" oninput="calcPct()"></div>
+          </div>
+          <div id="pctResult" class="num" style="margin-top:16px;font-weight:600;color:var(--teal-deep);line-height:1.8;"></div>
+        </div>
+        <div id="calc-mil" class="panel calc-panel" style="display:none;">
+          <div class="field-row">
+            <div class="field"><label class="gu">Distance (KM)</label><input type="number" id="milDist" value="300" oninput="calcMileage()"></div>
+            <div class="field"><label class="gu">Fuel Price (₹/L)</label><input type="number" id="milPrice" value="90" oninput="calcMileage()"></div>
+          </div>
+          <div class="field"><label class="gu">Fuel Used (Liters)</label><input type="number" id="milFuel" value="15" oninput="calcMileage()"></div>
+          <div id="milResult" class="num" style="margin-top:16px;font-weight:600;color:var(--teal-deep);line-height:1.8;"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- DIAGNOSTICS / SELF-TEST -->
     <section class="view" id="view-diagnostics">
       <div class="panel-head" style="margin-bottom:14px;">
@@ -549,6 +638,67 @@
           <tbody id="diagResultsTable"></tbody>
         </table>
         <div class="empty gu" id="diagEmpty">Press "▶ Run All Tests" to check everything is calculating correctly.</div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="view" id="view-profile">
+      <div id="profileSignedIn" style="display:none;">
+        <div class="panel" style="display:flex;align-items:center;gap:18px;margin-bottom:20px;flex-wrap:wrap;">
+          <div id="profileAvatar" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--gold));
+            color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;flex-shrink:0;">?</div>
+          <div style="flex:1;min-width:200px;">
+            <div id="profileNameDisplay" style="font-size:19px;font-weight:700;color:var(--teal-deep);"></div>
+            <div id="profileEmailDisplay" class="num" style="font-size:13px;color:var(--ink-soft);"></div>
+          </div>
+        </div>
+
+        <div class="cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
+          <div class="card"><div class="label gu">Loan Entries</div><div class="value num" id="profileLoanCount">0</div></div>
+          <div class="card"><div class="label gu">Transactions</div><div class="value num" id="profileTxnCount">0</div></div>
+          <div class="card"><div class="label gu">Member Since</div><div class="value num" id="profileMemberSince" style="font-size:15px;">-</div></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:16px;">
+          <h3 class="gu">Account</h3>
+          <div class="field">
+            <label class="gu">Display Name</label>
+            <div style="display:flex;gap:10px;">
+              <input type="text" id="profileNameInput" placeholder="Your name">
+              <button class="btn gu" onclick="saveProfileName()">Save</button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="gu">Email</label>
+            <input type="text" id="profileEmailInput" disabled style="opacity:0.6;">
+          </div>
+          <div class="field">
+            <label class="gu">Last Sign-in</label>
+            <input type="text" id="profileLastSignIn" disabled style="opacity:0.6;">
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3 class="gu">Preferences</h3>
+          <div class="more-item gu" style="padding-left:0;" onclick="toggleTheme()"><span class="ico">🌙</span><span class="theme-toggle-text">Dark Mode</span></div>
+          <div class="more-item gu" style="padding-left:0;" onclick="togglePinSetup()"><span class="ico">🔒</span><span class="pin-lock-text">Set PIN Lock</span></div>
+          <div class="more-item gu" style="padding-left:0;" onclick="exportData()"><span class="ico">⬇</span>Export Data</div>
+          <div class="more-item gu" style="padding-left:0;" onclick="document.getElementById('importFile').click()"><span class="ico">⬆</span>Import Data</div>
+          <div style="margin-top:14px;">
+            <button class="btn btn-ghost gu" onclick="doSignOut()">Sign Out</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="profileSignedOut" style="display:none;">
+        <div class="panel" style="text-align:center;padding:40px 20px;">
+          <div style="font-size:40px;margin-bottom:10px;">👤</div>
+          <h3 class="gu">Not signed in</h3>
+          <p class="gu" style="color:var(--ink-soft);font-size:13.5px;max-width:40ch;margin:0 auto 18px;">
+            Set up private cloud sync to see your profile, sync across devices, and keep your data backed up.
+          </p>
+          <button class="btn btn-gold gu" onclick="openSyncModal()">⚙ Set Up Sync / Login</button>
+        </div>
       </div>
     </section>
   </main>
@@ -839,7 +989,7 @@ function renderReminders(){
     tr.innerHTML = `<td data-label="Name">${l.name}</td><td data-label="Type"><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span></td>
       <td data-label="Amount" class="right num">${fmt(l.amount)}</td><td data-label="Due" class="num">${l.returnDate||l.date}</td>
       <td data-label="Overdue" class="right num" style="color:var(--red);font-weight:600;">${daysOver}d</td>
-      <td data-label=""><button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button></td>`;
+      <td data-label=""><button class="icon-btn" onclick="sendWhatsAppReminder('${l.id}')" title="WhatsApp Reminder" style="color:var(--green);">💬</button><button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button></td>`;
     ot.appendChild(tr);
   });
 
@@ -1042,6 +1192,7 @@ function initFirebase(){
         updateSyncStatus('needlogin');
       }
       refreshSyncModalUI();
+      if(document.getElementById('view-profile')?.classList.contains('active')) renderProfile();
     });
   }catch(e){ 
     console.error("Firebase Start Error:", e);
@@ -1149,9 +1300,51 @@ function doSignOut(){
 window.openSyncModal=openSyncModal; 
 window.doSignUp=doSignUp; window.doSignIn=doSignIn; window.doSignOut=doSignOut;
 
+/* ---------------- PROFILE ---------------- */
+function renderProfile(){
+  const signedIn = document.getElementById('profileSignedIn');
+  const signedOut = document.getElementById('profileSignedOut');
+  if(!fbUser){
+    signedIn.style.display = 'none';
+    signedOut.style.display = '';
+    return;
+  }
+  signedIn.style.display = '';
+  signedOut.style.display = 'none';
+
+  const name = fbUser.displayName || fbUser.email.split('@')[0];
+  document.getElementById('profileAvatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('profileNameDisplay').textContent = name;
+  document.getElementById('profileEmailDisplay').textContent = fbUser.email;
+  document.getElementById('profileNameInput').value = fbUser.displayName || '';
+  document.getElementById('profileEmailInput').value = fbUser.email;
+
+  const created = fbUser.metadata?.creationTime ? new Date(fbUser.metadata.creationTime) : null;
+  document.getElementById('profileMemberSince').textContent = created
+    ? created.toLocaleDateString('en-IN', {year:'numeric', month:'short'}) : '-';
+  const lastSignIn = fbUser.metadata?.lastSignInTime ? new Date(fbUser.metadata.lastSignInTime) : null;
+  document.getElementById('profileLastSignIn').value = lastSignIn
+    ? lastSignIn.toLocaleString('en-IN', {dateStyle:'medium', timeStyle:'short'}) : '-';
+
+  document.getElementById('profileLoanCount').textContent = loans.length;
+  document.getElementById('profileTxnCount').textContent = txns.length;
+}
+window.renderProfile = renderProfile;
+
+function saveProfileName(){
+  if(!fbUser) return;
+  const name = document.getElementById('profileNameInput').value.trim();
+  if(!name){ showToast('Enter a name'); return; }
+  fbUser.updateProfile({displayName: name}).then(()=>{
+    showToast('Name updated');
+    renderProfile();
+  }).catch(e=> showToast(e.message));
+}
+window.saveProfileName = saveProfileName;
+
 
 /* ---------------- NAV ---------------- */
-const titles = {dashboard:'Dashboard', loans:'Loans', txns:'Income & Expense', budget:'Budget', reminders:'Reminders', reports:'Reports', diagnostics:'Diagnostics'};
+const titles = {dashboard:'Dashboard', loans:'Loans', txns:'Income & Expense', budget:'Budget', reminders:'Reminders', reports:'Reports', calculators:'Calculators', diagnostics:'Diagnostics', profile:'Profile'};
 function go(view){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
   document.querySelectorAll('.bottom-nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
@@ -1161,6 +1354,8 @@ function go(view){
   if(view==='reports') renderReportCharts();
   if(view==='dashboard') renderDashboardCharts();
   if(view==='reminders') renderReminders();
+  if(view==='profile') renderProfile();
+  if(view==='calculators' && typeof resetCalcHub==='function') resetCalcHub();
   document.querySelectorAll('.fab').forEach(f=> f.style.display = (f.dataset.view===view) ? 'flex' : 'none');
 }
 window.go = go;
@@ -1212,6 +1407,88 @@ function loanCalc(l){
 
 /* ---------------- DIAGNOSTICS / SELF-TEST SUITE ---------------- */
 function daysAgoStr(n){ const d = new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
+
+/* ---------------- FINANCIAL CALCULATOR HUB ---------------- */
+function openCalcTool(id, title){
+  document.getElementById('calcCategoryGrid').style.display = 'none';
+  document.getElementById('activeCalcArea').style.display = 'block';
+  document.querySelectorAll('.calc-panel').forEach(p=>p.style.display='none');
+  document.getElementById('calc-'+id).style.display = 'block';
+  document.getElementById('calcHubTitle').textContent = title;
+  document.getElementById('calcBackBtn').style.display = 'inline-block';
+  const fns = {sip:calcSIP, emi:calcEMI, gst:calcGST, si:calcSI, pct:calcPct, mil:calcMileage};
+  if(fns[id]) fns[id]();
+}
+function resetCalcHub(){
+  document.getElementById('calcCategoryGrid').style.display = 'grid';
+  document.getElementById('activeCalcArea').style.display = 'none';
+  document.getElementById('calcHubTitle').textContent = 'Financial Calculators';
+  document.getElementById('calcBackBtn').style.display = 'none';
+}
+function calcSIP(){
+  const P = parseFloat(document.getElementById('sipAmount').value)||0;
+  const r = parseFloat(document.getElementById('sipRate').value)||0;
+  const y = parseFloat(document.getElementById('sipYears').value)||0;
+  const i = (r/100)/12, n = y*12;
+  const totalValue = (i===0) ? P*n : P * ((Math.pow(1+i,n)-1)/i) * (1+i);
+  document.getElementById('sipResult').innerHTML =
+    `Invested Principal: ${fmt(P*n)}<br>Estimated Wealth Gain: ${fmt(totalValue-(P*n))}<br>Total Capital Projection: ${fmt(totalValue)}`;
+}
+function calcEMI(){
+  const P = parseFloat(document.getElementById('emiAmount').value)||0;
+  const r = parseFloat(document.getElementById('emiRate').value)||0;
+  const y = parseFloat(document.getElementById('emiYears').value)||0;
+  const i = (r/100)/12, n = y*12;
+  const emi = (i===0) ? P/n : P * i * Math.pow(1+i,n) / (Math.pow(1+i,n)-1);
+  document.getElementById('emiResult').innerHTML =
+    `Monthly EMI: ${fmt(emi)}<br>Total Interest Payable: ${fmt((emi*n)-P)}<br>Total Payment: ${fmt(emi*n)}`;
+}
+function calcGST(){
+  const amt = parseFloat(document.getElementById('gstAmount').value)||0;
+  const rate = parseFloat(document.getElementById('gstRate').value)||0;
+  const type = document.getElementById('gstType').value;
+  const gst = (type==='add') ? amt*(rate/100) : amt - (amt*(100/(100+rate)));
+  document.getElementById('gstResult').innerHTML =
+    `Net Base Amount: ${fmt(type==='add'?amt:amt-gst)}<br>GST Amount: ${fmt(gst)}<br>Total Amount: ${fmt(type==='add'?amt+gst:amt)}`;
+}
+function calcSI(){
+  const P = parseFloat(document.getElementById('siAmount').value)||0;
+  const R = parseFloat(document.getElementById('siRate').value)||0;
+  const T = parseFloat(document.getElementById('siTime').value)||0;
+  const type = document.getElementById('siType').value;
+  let years = T; if(type==='months') years = T/12; if(type==='days') years = T/365;
+  const si = P*(R/100)*years;
+  document.getElementById('siResult').innerHTML = `Interest Earned: ${fmt(si)}<br>Total Final Amount: ${fmt(P+si)}`;
+}
+function calcPct(){
+  const val = parseFloat(document.getElementById('pctBase').value)||0;
+  const pct = parseFloat(document.getElementById('pctRate').value)||0;
+  const res = val*(pct/100);
+  document.getElementById('pctResult').innerHTML =
+    `${pct}% of ${fmt(val)} is <b>${fmt(res)}</b><br>Added Total (+): ${fmt(val+res)}<br>Discounted Total (−): ${fmt(val-res)}`;
+}
+function calcMileage(){
+  const dist = parseFloat(document.getElementById('milDist').value)||0;
+  const price = parseFloat(document.getElementById('milPrice').value)||0;
+  const fuel = parseFloat(document.getElementById('milFuel').value)||0;
+  const mil = fuel>0 ? (dist/fuel).toFixed(2) : 0;
+  const cost = dist>0 ? ((fuel*price)/dist).toFixed(2) : 0;
+  document.getElementById('milResult').innerHTML =
+    `Mileage: <b>${mil} km/l</b><br>Total Trip Fuel Cost: ${fmt(fuel*price)}<br>Running Cost: ₹${cost} per km`;
+}
+window.openCalcTool=openCalcTool; window.resetCalcHub=resetCalcHub;
+window.calcSIP=calcSIP; window.calcEMI=calcEMI; window.calcGST=calcGST;
+window.calcSI=calcSI; window.calcPct=calcPct; window.calcMileage=calcMileage;
+
+function sendWhatsAppReminder(id){
+  const l = loans.find(x=>x.id===id);
+  if(!l) return;
+  const c = loanCalc(l);
+  const msg = `Hi ${l.name}, a friendly reminder — as per our ledger: Principal: ${fmt(l.amount)}, Outstanding Interest: ${fmt(c.interest)}, Total Outstanding: ${fmt(c.total)}. Kindly clear this at your convenience. Thanks!`;
+  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+}
+window.sendWhatsAppReminder = sendWhatsAppReminder;
+
 function parseFmt(text){ return parseFloat((text||'0').replace(/[₹,]/g,'')) || 0; }
 
 function runDiagnostics(){
@@ -1388,7 +1665,7 @@ function renderLoans(){
       <td data-label="Rate" class="right num">${l.rate}%</td><td data-label="Days" class="right num">${c.days}</td>
       <td data-label="Interest" class="right num">${fmt(c.interest)}</td><td data-label="Total" class="right num" style="font-weight:600;">${fmt(c.total)}</td>
       <td data-label="Status"><span class="tag tag-${l.status.toLowerCase()}">${l.status}</span></td>
-      <td data-label=""><button class="icon-btn" onclick="openLedgerModal('${l.id}')">💳</button><button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button><button class="icon-btn" onclick="deleteLoan('${l.id}')">✕</button></td>
+      <td data-label=""><button class="icon-btn" onclick="openLedgerModal('${l.id}')">💳</button>${l.status!=='Paid'?`<button class="icon-btn" onclick="sendWhatsAppReminder('${l.id}')" title="WhatsApp Reminder" style="color:var(--green);">💬</button>`:''}<button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button><button class="icon-btn" onclick="deleteLoan('${l.id}')">✕</button></td>
     </tr>`;
   });
   renderPeople();
@@ -1482,6 +1759,18 @@ function renderTxns(){
   const q = (document.getElementById('txnSearch')?.value || '').trim().toLowerCase();
   const filtered = txns.filter(t => !q || [t.category, t.note].some(v => (v||'').toLowerCase().includes(q)));
   document.getElementById('txnsEmpty').style.display = filtered.length?'none':'';
+
+  let totalInc = 0, totalExp = 0;
+  filtered.forEach(t => { if(t.type==='income') totalInc += t.amount; else totalExp += t.amount; });
+  const sumBox = document.getElementById('txnSummaryCards');
+  if(sumBox){
+    sumBox.innerHTML = `
+      <div class="card"><div class="label gu">${q?'Filtered ':''}Income</div><div class="value num pos" style="font-size:19px;">${fmt(totalInc)}</div></div>
+      <div class="card"><div class="label gu">${q?'Filtered ':''}Expense</div><div class="value num neg" style="font-size:19px;">${fmt(totalExp)}</div></div>
+      <div class="card"><div class="label gu">Net</div><div class="value num ${totalInc-totalExp>=0?'pos':'neg'}" style="font-size:19px;">${fmt(totalInc-totalExp)}</div></div>
+    `;
+  }
+
   filtered.slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(t=>{
     tbody.innerHTML += `<tr><td data-label="Date" class="num">${t.date}</td><td data-label="Type"><span class="tag tag-${t.type}">${t.type}</span></td>
       <td data-label="Category">${t.category}</td><td data-label="Amount" class="right num" style="font-weight:600;color:${t.type==='income'?'var(--green)':'var(--red)'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</td>
