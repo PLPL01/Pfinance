@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>My Ledger — Personal Finance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -133,7 +133,7 @@
   .empty .big{font-size:30px;display:block;margin-bottom:8px;}
 
   /* Modal */
-  .overlay{position:fixed;inset:0;background:rgba(20,26,22,0.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .overlay{position:fixed;inset:0;background:rgba(20,26,22,0.45);display:none;align-items:center;justify-content:center;z-index:250;padding:20px;}
   .overlay.active{display:flex;}
   .modal{background:var(--card);border-radius:16px;width:100%;max-width:460px;padding:26px 26px 22px;box-shadow:0 20px 60px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;}
   .modal h3{margin:0 0 16px;color:var(--teal-deep);}
@@ -183,16 +183,71 @@
   @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-10px);} 75%{transform:translateX(10px);} }
   .shake { animation: shake 0.3s ease; }
 
+  /* ---- Mobile bottom nav + more sheet (hidden on desktop) ---- */
+  .bottom-nav{display:none;}
+  .more-sheet{position:fixed;inset:0;background:rgba(10,15,13,0.5);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+  .more-sheet.active{display:flex;}
+  .more-sheet-panel{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;
+    padding:8px 10px calc(18px + env(safe-area-inset-bottom));max-height:82vh;overflow-y:auto;}
+  .more-sheet-handle{width:38px;height:4px;background:var(--line);border-radius:4px;margin:8px auto 12px;}
+  .more-item{display:flex;align-items:center;gap:14px;padding:14px 14px;font-size:15px;font-weight:500;color:var(--ink);
+    border-radius:12px;cursor:pointer;position:relative;}
+  .more-item:active{background:var(--paper-2);}
+  .more-item .ico{width:22px;text-align:center;font-size:18px;}
+  .fab{display:none;}
+
   @media(max-width:760px){
+    html{-webkit-text-size-adjust:100%;}
     .app{flex-direction:column;}
-    .sidebar{width:100%;flex-direction:row;overflow-x:auto;padding:10px 6px;align-items:center;}
-    .brand{display:none;}
-    .nav-item{flex-direction:column;gap:4px;padding:8px 14px;font-size:11px;border-left:none;border-bottom:3px solid transparent;white-space:nowrap;}
-    .nav-item.active{border-left:none;border-bottom-color:var(--gold);}
-    .sidebar-foot{display:none;}
-    .content{padding:18px 16px 50px;}
-    .cards{grid-template-columns:1fr 1fr;}
+    .sidebar{display:none;} /* desktop sidebar replaced entirely by bottom-nav + more sheet */
+    .content{padding:16px 14px calc(84px + env(safe-area-inset-bottom));}
+    .topbar h1{font-size:21px;}
+    .cards{grid-template-columns:1fr 1fr;gap:10px;}
+    .card{padding:14px 14px;}
+    .card .value{font-size:19px;}
     .field-row{grid-template-columns:1fr;}
+    .panel{padding:14px 14px;}
+    .panel-head{flex-wrap:wrap;gap:10px;}
+    .search-box{width:100%;max-width:none;}
+    button, .btn, .icon-btn, .nav-item, a{ -webkit-tap-highlight-color: transparent; }
+    .btn{padding:11px 18px;font-size:14px;min-height:44px;}
+    .btn-sm{min-height:36px;padding:7px 12px;}
+
+    /* Bottom tab bar */
+    .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--teal-deep);z-index:60;
+      padding:6px 2px calc(6px + env(safe-area-inset-bottom));justify-content:space-around;
+      box-shadow:0 -3px 14px rgba(0,0,0,0.18);}
+    .bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:#AEBDB6;font-size:10.5px;
+      font-weight:600;padding:6px 4px;border-radius:12px;min-width:58px;position:relative;}
+    .bottom-nav-item.active{color:#fff;}
+    .bottom-nav-item .ico{font-size:20px;line-height:1;}
+
+    /* Floating action button on Loans / Income&Expense views */
+    .fab{display:flex;position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));right:18px;z-index:55;
+      width:56px;height:56px;border-radius:50%;background:var(--gold);color:#332406;align-items:center;
+      justify-content:center;font-size:26px;box-shadow:0 6px 18px rgba(0,0,0,0.3);border:none;cursor:pointer;}
+    .fab:active{transform:scale(0.94);}
+
+    /* Modals become near-full-screen sheets */
+    .overlay{align-items:flex-end;padding:0;}
+    .modal{max-width:100% !important;width:100%;border-radius:20px 20px 0 0;max-height:92vh;
+      padding:20px 18px calc(20px + env(safe-area-inset-bottom));}
+
+    /* Card-style responsive tables (except tiny 2-3 col ones we keep as table) */
+    .rtable thead{display:none;}
+    .rtable, .rtable tbody, .rtable tr, .rtable td{display:block;width:100%;}
+    .rtable tr{background:var(--card);border:1px solid var(--line);border-radius:12px;
+      margin-bottom:10px;padding:4px 12px;}
+    .rtable td{display:flex;justify-content:space-between;align-items:center;gap:10px;
+      padding:8px 0;border-bottom:1px dashed var(--line);text-align:right;}
+    .rtable td:last-child{border-bottom:none;justify-content:flex-end;}
+    .rtable td::before{content:attr(data-label);font-weight:600;color:var(--ink-soft);font-size:11px;
+      text-transform:uppercase;letter-spacing:.03em;text-align:left;flex-shrink:0;}
+    .rtable td[data-label=""]::before{content:none;}
+
+    .grid-2{grid-template-columns:1fr;}
+    canvas{max-height:220px;}
+    .toast{bottom:calc(76px + env(safe-area-inset-bottom));max-width:88vw;text-align:center;}
   }
 </style>
 </head>
@@ -223,19 +278,51 @@
     <div class="nav-item gu" data-view="loans"><span class="ico">₹</span> Loans</div>
     <div class="nav-item gu" data-view="txns"><span class="ico">⇄</span> Income & Expense</div>
     <div class="nav-item gu" data-view="budget"><span class="ico">▤</span> Budget</div>
-    <div class="nav-item gu" data-view="reminders"><span class="ico">🔔</span> Reminders <span id="reminderBadge" class="badge-count" style="display:none;">0</span></div>
+    <div class="nav-item gu" data-view="reminders"><span class="ico">🔔</span> Reminders <span class="badge-count reminder-badge" style="display:none;">0</span></div>
     <div class="nav-item gu" data-view="reports"><span class="ico">◫</span> Reports</div>
     <div class="nav-item gu" data-view="diagnostics"><span class="ico">🧪</span> Diagnostics</div>
     <div class="sidebar-foot gu">
-      <div id="syncStatus" style="margin-bottom:10px;">○ Local only (not synced)</div>
-      <a href="#" onclick="toggleTheme();return false;" style="color:var(--gold-soft);" id="themeToggleLink">🌙 Dark Mode</a><br>
-      <a href="#" id="pinLockBtn" onclick="togglePinSetup();return false;" style="color:var(--gold-soft);">🔒 Set PIN Lock</a><br>
+      <div class="sync-status-text" style="margin-bottom:10px;">○ Local only (not synced)</div>
+      <a href="#" onclick="toggleTheme();return false;" style="color:var(--gold-soft);" class="theme-toggle-text">🌙 Dark Mode</a><br>
+      <a href="#" onclick="togglePinSetup();return false;" style="color:var(--gold-soft);" class="pin-lock-text">🔒 Set PIN Lock</a><br>
       <a href="#" onclick="openSyncModal();return false;" style="color:var(--gold-soft);">⚙ Sync / Login</a><br>
       <a href="#" onclick="exportData();return false;" style="color:var(--gold-soft);">⬇ Export</a> &nbsp;|&nbsp;
       <a href="#" onclick="document.getElementById('importFile').click();return false;" style="color:var(--gold-soft);">⬆ Import</a>
       <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
     </div>
   </nav>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-item active" data-view="dashboard" onclick="go('dashboard')"><span class="ico">◆</span>Home</div>
+    <div class="bottom-nav-item" data-view="loans" onclick="go('loans')"><span class="ico">₹</span>Loans</div>
+    <div class="bottom-nav-item" data-view="txns" onclick="go('txns')"><span class="ico">⇄</span>Expense</div>
+    <div class="bottom-nav-item" data-view="budget" onclick="go('budget')"><span class="ico">▤</span>Budget</div>
+    <div class="bottom-nav-item" onclick="openMoreSheet()">
+      <span class="ico">☰</span>More
+      <span class="badge-count reminder-badge" style="display:none;position:absolute;top:2px;right:8px;">0</span>
+    </div>
+  </nav>
+
+  <!-- MOBILE MORE SHEET -->
+  <div class="more-sheet" id="moreSheet" onclick="if(event.target===this)closeMoreSheet()">
+    <div class="more-sheet-panel">
+      <div class="more-sheet-handle"></div>
+      <div class="more-item gu" onclick="closeMoreSheet();go('reminders')">
+        <span class="ico">🔔</span>Reminders
+        <span class="badge-count reminder-badge" style="display:none;margin-left:auto;">0</span>
+      </div>
+      <div class="more-item gu" onclick="closeMoreSheet();go('reports')"><span class="ico">◫</span>Reports</div>
+      <div class="more-item gu" onclick="closeMoreSheet();go('diagnostics')"><span class="ico">🧪</span>Diagnostics</div>
+      <hr style="border:none;border-top:1px solid var(--line);margin:8px 4px;">
+      <div class="more-item gu" onclick="toggleTheme()"><span class="ico">🌙</span><span class="theme-toggle-text">Dark Mode</span></div>
+      <div class="more-item gu" onclick="togglePinSetup()"><span class="ico">🔒</span><span class="pin-lock-text">Set PIN Lock</span></div>
+      <div class="more-item gu" onclick="closeMoreSheet();openSyncModal()"><span class="ico">⚙</span>Sync / Login</div>
+      <div class="more-item gu" onclick="exportData()"><span class="ico">⬇</span>Export Data</div>
+      <div class="more-item gu" onclick="document.getElementById('importFile').click()"><span class="ico">⬆</span>Import Data</div>
+      <div class="sync-status-text gu" style="padding:12px 16px 4px;font-size:12px;color:var(--ink-soft);">○ Local only (not synced)</div>
+    </div>
+  </div>
 
   <main class="content">
     <div class="topbar">
@@ -298,7 +385,7 @@
           <button class="btn btn-gold gu" onclick="openLoanModal()">+ New Entry</button>
         </div>
         <div class="panel">
-          <table>
+          <table class="rtable">
             <thead><tr>
               <th class="gu">Name</th><th class="gu">Type</th><th class="right gu">Amount</th>
               <th class="gu">Date</th><th class="gu">Mode</th><th class="right gu">Rate%</th><th class="right gu">Days</th>
@@ -315,7 +402,7 @@
       <div id="loans-people" style="display:none;">
         <div class="panel">
           <p class="gu" style="color:var(--ink-soft);font-size:12.5px;margin:0 0 10px;">Click any name to see all separate entries for that person.</p>
-          <table>
+          <table class="rtable">
             <thead><tr>
               <th class="gu">Name</th><th class="right gu">Given (Principal)</th><th class="right gu">Taken (Principal)</th>
               <th class="right gu">Interest (Given)</th><th class="right gu">Interest (Taken)</th>
@@ -335,7 +422,7 @@
         <button class="btn btn-gold gu" onclick="openTxnModal()">+ New Transaction</button>
       </div>
       <div class="panel">
-        <table>
+        <table class="rtable">
           <thead><tr>
             <th class="gu">Date</th><th class="gu">Type</th><th class="gu">Category</th>
             <th class="right gu">Amount</th><th class="gu">Note</th><th></th>
@@ -372,7 +459,7 @@
 
       <div class="panel" style="margin-bottom:18px;">
         <h3 class="gu" style="color:var(--red);">⚠ Overdue</h3>
-        <table>
+        <table class="rtable">
           <thead><tr><th class="gu">Name</th><th class="gu">Type</th><th class="right gu">Amount</th><th class="gu">Due Date</th><th class="right gu">Days Overdue</th><th></th></tr></thead>
           <tbody id="overdueTable"></tbody>
         </table>
@@ -381,7 +468,7 @@
 
       <div class="panel">
         <h3 class="gu" style="color:var(--gold);">📅 Due in Next 7 Days</h3>
-        <table>
+        <table class="rtable">
           <thead><tr><th class="gu">Name</th><th class="gu">Type</th><th class="right gu">Amount</th><th class="gu">Due Date</th><th class="right gu">Days Left</th><th></th></tr></thead>
           <tbody id="dueSoonTable"></tbody>
         </table>
@@ -419,7 +506,7 @@
       </div>
       <div class="cards" id="diagSummary" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;"></div>
       <div class="panel">
-        <table>
+        <table class="rtable">
           <thead><tr><th style="width:36px;"></th><th class="gu">Check</th><th class="right gu">Expected</th><th class="right gu">Actual</th></tr></thead>
           <tbody id="diagResultsTable"></tbody>
         </table>
@@ -427,6 +514,10 @@
       </div>
     </section>
   </main>
+
+  <!-- MOBILE FLOATING ACTION BUTTONS -->
+  <button class="fab" data-view="loans" style="display:none;" onclick="openLoanModal()" title="New Loan Entry">+</button>
+  <button class="fab" data-view="txns" style="display:none;" onclick="openTxnModal()" title="New Transaction">+</button>
 </div>
 
 <!-- LOAN MODAL -->
@@ -540,7 +631,7 @@
   <div class="modal" style="max-width:640px;">
     <h3 class="gu" id="personModalName">Person Details</h3>
     <div id="personSummaryCards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;"></div>
-    <table>
+    <table class="rtable">
       <thead><tr>
         <th class="gu">Type</th><th class="right gu">Amount</th><th class="gu">Date</th>
         <th class="gu">Mode</th><th class="right gu">Interest</th><th class="right gu">Total</th><th class="gu">Status</th><th></th>
@@ -563,7 +654,7 @@
     </p>
     <div id="ledgerSummaryCards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;"></div>
     <h3 style="font-size:14px;margin:0 0 10px;">Payment History</h3>
-    <table style="margin-bottom:16px;">
+    <table class="rtable" style="margin-bottom:16px;">
       <thead><tr><th class="gu">Date</th><th class="gu">Type</th><th class="right gu">Amount</th><th class="gu">Mode</th><th></th></tr></thead>
       <tbody id="ledgerPaymentsTable"></tbody>
     </table>
@@ -658,8 +749,9 @@ function showToast(msg){
 /* ---------------- DARK MODE ---------------- */
 function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
-  const link = document.getElementById('themeToggleLink');
-  if(link) link.textContent = theme==='dark' ? '☀ Light Mode' : '🌙 Dark Mode';
+  document.querySelectorAll('.theme-toggle-text').forEach(link=>{
+    link.textContent = theme==='dark' ? '☀ Light Mode' : '🌙 Dark Mode';
+  });
   Object.keys(chartInstances).forEach(k=>{ if(chartInstances[k]) chartInstances[k].destroy(); });
   chartInstances = {};
   renderDashboardCharts();
@@ -706,10 +798,10 @@ function renderReminders(){
   document.getElementById('overdueEmpty').style.display = overdue.length ? 'none' : '';
   overdue.forEach(({l,daysOver})=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${l.name}</td><td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span></td>
-      <td class="right num">${fmt(l.amount)}</td><td class="num">${l.returnDate||l.date}</td>
-      <td class="right num" style="color:var(--red);font-weight:600;">${daysOver}d</td>
-      <td><button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button></td>`;
+    tr.innerHTML = `<td data-label="Name">${l.name}</td><td data-label="Type"><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span></td>
+      <td data-label="Amount" class="right num">${fmt(l.amount)}</td><td data-label="Due" class="num">${l.returnDate||l.date}</td>
+      <td data-label="Overdue" class="right num" style="color:var(--red);font-weight:600;">${daysOver}d</td>
+      <td data-label=""><button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button></td>`;
     ot.appendChild(tr);
   });
 
@@ -717,10 +809,10 @@ function renderReminders(){
   document.getElementById('dueSoonEmpty').style.display = dueSoon.length ? 'none' : '';
   dueSoon.forEach(({l,daysLeft})=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${l.name}</td><td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span></td>
-      <td class="right num">${fmt(l.amount)}</td><td class="num">${l.returnDate||l.date}</td>
-      <td class="right num" style="color:var(--gold);font-weight:600;">${daysLeft===0?'Today':daysLeft+'d'}</td>
-      <td><button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button></td>`;
+    tr.innerHTML = `<td data-label="Name">${l.name}</td><td data-label="Type"><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span></td>
+      <td data-label="Amount" class="right num">${fmt(l.amount)}</td><td data-label="Due" class="num">${l.returnDate||l.date}</td>
+      <td data-label="Left" class="right num" style="color:var(--gold);font-weight:600;">${daysLeft===0?'Today':daysLeft+'d'}</td>
+      <td data-label=""><button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button></td>`;
     dt.appendChild(tr);
   });
 }
@@ -729,8 +821,9 @@ window.renderReminders = renderReminders;
 function updateReminderBadge(){
   const {overdue, dueSoon} = getDueLists();
   const total = overdue.length + dueSoon.length;
-  const badge = document.getElementById('reminderBadge');
-  if(badge){ badge.style.display = total ? '' : 'none'; badge.textContent = total; }
+  document.querySelectorAll('.reminder-badge').forEach(badge=>{
+    badge.style.display = total ? '' : 'none'; badge.textContent = total;
+  });
   return total;
 }
 function checkReminderBadgeOnLoad(){
@@ -849,7 +942,9 @@ function togglePinSetup() {
 }
 
 function renderSidebarLockBtn() {
-  document.getElementById('pinLockBtn').innerHTML = appPin ? '🔓 Remove PIN Lock' : '🔒 Set PIN Lock';
+  document.querySelectorAll('.pin-lock-text').forEach(el=>{
+    el.innerHTML = appPin ? '🔓 Remove PIN Lock' : '🔒 Set PIN Lock';
+  });
 }
 window.pinPress = pinPress; window.pinClear = pinClear; window.pinForgot = pinForgot; window.togglePinSetup = togglePinSetup;
 
@@ -868,13 +963,13 @@ async function saveBudgets(){ try{ localStorage.setItem('mh_budgets', JSON.strin
 let fbApp = null, fbDb = null, fbAuth = null, fbUnsub = null, fbSaveTimer = null, fbApplyingRemote = false, fbUser = null;
 
 function updateSyncStatus(state){
-  const el = document.getElementById('syncStatus');
-  if(!el) return;
-  if(state==='on') el.innerHTML = '<span style="color:#8FD9A8;">● Synced (' + (fbUser?fbUser.email:'') + ')</span>';
-  else if(state==='connecting') el.textContent = '○ Connecting…';
-  else if(state==='error') el.innerHTML = '<span style="color:#E39A8A;">● Sync error</span>';
-  else if(state==='needlogin') el.innerHTML = '<span style="color:var(--gold-soft);">○ Setup sync →</span>';
-  else el.textContent = '○ Local only';
+  let html;
+  if(state==='on') html = '<span style="color:#8FD9A8;">● Synced (' + (fbUser?fbUser.email:'') + ')</span>';
+  else if(state==='connecting') html = '○ Connecting…';
+  else if(state==='error') html = '<span style="color:#E39A8A;">● Sync error</span>';
+  else if(state==='needlogin') html = '<span style="color:var(--gold-soft);">○ Setup sync →</span>';
+  else html = '○ Local only';
+  document.querySelectorAll('.sync-status-text').forEach(el=> el.innerHTML = html);
 }
 
 function initFirebase(){
@@ -1021,13 +1116,19 @@ window.doSignUp=doSignUp; window.doSignIn=doSignIn; window.doSignOut=doSignOut;
 const titles = {dashboard:'Dashboard', loans:'Loans', txns:'Income & Expense', budget:'Budget', reminders:'Reminders', reports:'Reports', diagnostics:'Diagnostics'};
 function go(view){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
+  document.querySelectorAll('.bottom-nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
   document.getElementById('viewTitle').textContent = titles[view];
   if(view==='reports') renderReportCharts();
   if(view==='dashboard') renderDashboardCharts();
   if(view==='reminders') renderReminders();
+  document.querySelectorAll('.fab').forEach(f=> f.style.display = (f.dataset.view===view) ? 'flex' : 'none');
 }
+window.go = go;
+function openMoreSheet(){ document.getElementById('moreSheet').classList.add('active'); }
+function closeMoreSheet(){ document.getElementById('moreSheet').classList.remove('active'); }
+window.openMoreSheet = openMoreSheet; window.closeMoreSheet = closeMoreSheet;
 document.querySelectorAll('.nav-item').forEach(n=>n.addEventListener('click', ()=>go(n.dataset.view)));
 
 document.querySelectorAll('.subnav button').forEach(b=>{
@@ -1149,9 +1250,9 @@ function renderDiagnosticsResults(results){
   results.forEach(r=>{
     const tr = document.createElement('tr');
     if(!r.pass) tr.style.background = 'rgba(176,67,46,0.08)';
-    tr.innerHTML = `<td>${r.pass?'✅':'❌'}</td><td style="${r.pass?'':'font-weight:600;'}">${r.label}</td>
-      <td class="right num">${typeof r.expected==='number'?fmt(r.expected):r.expected}</td>
-      <td class="right num">${typeof r.actual==='number'?fmt(r.actual):r.actual}</td>`;
+    tr.innerHTML = `<td data-label="">${r.pass?'✅':'❌'}</td><td data-label="Check" style="${r.pass?'':'font-weight:600;'}">${r.label}</td>
+      <td data-label="Expected" class="right num">${typeof r.expected==='number'?fmt(r.expected):r.expected}</td>
+      <td data-label="Actual" class="right num">${typeof r.actual==='number'?fmt(r.actual):r.actual}</td>`;
     tbody.appendChild(tr);
   });
   showToast(failCount ? `⚠ ${failCount} test(s) failed — check the table` : `✅ All ${passCount} tests passed`);
@@ -1242,14 +1343,14 @@ function renderLoans(){
   filtered.slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(l=>{
     const c = loanCalc(l);
     tbody.innerHTML += `<tr>
-      <td>${l.name}${c.hasPayments?' <span class="tag tag-partial" style="margin-left:4px;">ledger</span>':''}</td>
-      <td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span></td>
-      <td class="right num">${fmt(l.amount)}</td><td class="num">${l.date}</td>
-      <td style="font-size:12px;">${modeLabel(l.mode)}${l.ref?`<div style="color:var(--ink-soft);font-size:11px;">${l.ref}</div>`:''}</td>
-      <td class="right num">${l.rate}%</td><td class="right num">${c.days}</td>
-      <td class="right num">${fmt(c.interest)}</td><td class="right num" style="font-weight:600;">${fmt(c.total)}</td>
-      <td><span class="tag tag-${l.status.toLowerCase()}">${l.status}</span></td>
-      <td><button class="icon-btn" onclick="openLedgerModal('${l.id}')">💳</button><button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button><button class="icon-btn" onclick="deleteLoan('${l.id}')">✕</button></td>
+      <td data-label="Name">${l.name}${c.hasPayments?' <span class="tag tag-partial" style="margin-left:4px;">ledger</span>':''}</td>
+      <td data-label="Type"><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span></td>
+      <td data-label="Amount" class="right num">${fmt(l.amount)}</td><td data-label="Date" class="num">${l.date}</td>
+      <td data-label="Mode" style="font-size:12px;">${modeLabel(l.mode)}${l.ref?`<div style="color:var(--ink-soft);font-size:11px;">${l.ref}</div>`:''}</td>
+      <td data-label="Rate" class="right num">${l.rate}%</td><td data-label="Days" class="right num">${c.days}</td>
+      <td data-label="Interest" class="right num">${fmt(c.interest)}</td><td data-label="Total" class="right num" style="font-weight:600;">${fmt(c.total)}</td>
+      <td data-label="Status"><span class="tag tag-${l.status.toLowerCase()}">${l.status}</span></td>
+      <td data-label=""><button class="icon-btn" onclick="openLedgerModal('${l.id}')">💳</button><button class="icon-btn" onclick="openLoanModal('${l.id}')">✎</button><button class="icon-btn" onclick="deleteLoan('${l.id}')">✕</button></td>
     </tr>`;
   });
   renderPeople();
@@ -1266,10 +1367,10 @@ function renderPeople(){
     });
     const net = (givenAmt+givenInt) - (takenAmt+takenInt);
     tbody.innerHTML += `<tr style="cursor:pointer;" onclick="openPersonDetail('${name}')">
-      <td style="font-weight:600;color:var(--teal-deep);">${name} <span style="color:var(--ink-soft);font-weight:400;font-size:11px;">›</span></td>
-      <td class="right num">${fmt(givenAmt)}</td><td class="right num">${fmt(takenAmt)}</td><td class="right num">${fmt(givenInt)}</td>
-      <td class="right num">${fmt(takenInt)}</td><td class="right num">${fmt(givenAmt+givenInt)}</td><td class="right num">${fmt(takenAmt+takenInt)}</td>
-      <td class="right num ${net>=0?'pos':'neg'}" style="font-weight:700;">${fmt(net)}</td></tr>`;
+      <td data-label="Name" style="font-weight:600;color:var(--teal-deep);">${name} <span style="color:var(--ink-soft);font-weight:400;font-size:11px;">›</span></td>
+      <td data-label="Given" class="right num">${fmt(givenAmt)}</td><td data-label="Taken" class="right num">${fmt(takenAmt)}</td><td data-label="Int. Given" class="right num">${fmt(givenInt)}</td>
+      <td data-label="Int. Taken" class="right num">${fmt(takenInt)}</td><td data-label="Owed To You" class="right num">${fmt(givenAmt+givenInt)}</td><td data-label="You Owe" class="right num">${fmt(takenAmt+takenInt)}</td>
+      <td data-label="Net" class="right num ${net>=0?'pos':'neg'}" style="font-weight:700;">${fmt(net)}</td></tr>`;
   });
 }
 
@@ -1288,11 +1389,11 @@ function openPersonDetail(name){
   mine.forEach(l=>{
     const c = loanCalc(l);
     tbody.innerHTML += `<tr>
-      <td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span>${c.hasPayments?' <span class="tag tag-partial">ledger</span>':''}</td>
-      <td class="right num">${fmt(l.amount)}</td><td class="num">${l.date}</td>
-      <td style="font-size:12px;">${modeLabel(l.mode)}</td><td class="right num">${fmt(c.interest)}</td><td class="right num" style="font-weight:600;">${fmt(c.total)}</td>
-      <td><span class="tag tag-${l.status.toLowerCase()}">${l.status}</span></td>
-      <td><button class="icon-btn" onclick="openLedgerModal('${l.id}')">💳</button><button class="icon-btn" onclick="closeModal('personOverlay');openLoanModal('${l.id}')">✎</button></td>
+      <td data-label="Type"><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type==='given'?'Given':'Taken'}</span>${c.hasPayments?' <span class="tag tag-partial">ledger</span>':''}</td>
+      <td data-label="Amount" class="right num">${fmt(l.amount)}</td><td data-label="Date" class="num">${l.date}</td>
+      <td data-label="Mode" style="font-size:12px;">${modeLabel(l.mode)}</td><td data-label="Interest" class="right num">${fmt(c.interest)}</td><td data-label="Total" class="right num" style="font-weight:600;">${fmt(c.total)}</td>
+      <td data-label="Status"><span class="tag tag-${l.status.toLowerCase()}">${l.status}</span></td>
+      <td data-label=""><button class="icon-btn" onclick="openLedgerModal('${l.id}')">💳</button><button class="icon-btn" onclick="closeModal('personOverlay');openLoanModal('${l.id}')">✎</button></td>
     </tr>`;
   });
   openModal('personOverlay');
@@ -1321,8 +1422,8 @@ function renderLedger(){
   const tbody = document.getElementById('ledgerPaymentsTable'); tbody.innerHTML = '';
   document.getElementById('ledgerEmpty').style.display = led.payments.length?'none':'';
   led.payments.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(p=>{
-    tbody.innerHTML += `<tr><td class="num">${p.date}</td><td><span class="tag ${p.type==='interest'?'tag-given':'tag-taken'}">${p.type}</span></td>
-      <td class="right num">${fmt(p.amount)}</td><td style="font-size:12px;">${modeLabel(p.mode)}</td><td><button class="icon-btn" onclick="deletePayment('${p.id}')">✕</button></td></tr>`;
+    tbody.innerHTML += `<tr><td data-label="Date" class="num">${p.date}</td><td data-label="Type"><span class="tag ${p.type==='interest'?'tag-given':'tag-taken'}">${p.type}</span></td>
+      <td data-label="Amount" class="right num">${fmt(p.amount)}</td><td data-label="Mode" style="font-size:12px;">${modeLabel(p.mode)}</td><td data-label=""><button class="icon-btn" onclick="deletePayment('${p.id}')">✕</button></td></tr>`;
   });
 }
 function savePayment(){
@@ -1344,10 +1445,10 @@ function renderTxns(){
   const filtered = txns.filter(t => !q || [t.category, t.note].some(v => (v||'').toLowerCase().includes(q)));
   document.getElementById('txnsEmpty').style.display = filtered.length?'none':'';
   filtered.slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(t=>{
-    tbody.innerHTML += `<tr><td class="num">${t.date}</td><td><span class="tag tag-${t.type}">${t.type}</span></td>
-      <td>${t.category}</td><td class="right num" style="font-weight:600;color:${t.type==='income'?'var(--green)':'var(--red)'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</td>
-      <td style="color:var(--ink-soft);font-size:12.5px;">${t.note||''}</td>
-      <td><button class="icon-btn" onclick="openTxnModal('${t.id}')">✎</button><button class="icon-btn" onclick="deleteTxn('${t.id}')">✕</button></td></tr>`;
+    tbody.innerHTML += `<tr><td data-label="Date" class="num">${t.date}</td><td data-label="Type"><span class="tag tag-${t.type}">${t.type}</span></td>
+      <td data-label="Category">${t.category}</td><td data-label="Amount" class="right num" style="font-weight:600;color:${t.type==='income'?'var(--green)':'var(--red)'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</td>
+      <td data-label="Note" style="color:var(--ink-soft);font-size:12.5px;">${t.note||''}</td>
+      <td data-label=""><button class="icon-btn" onclick="openTxnModal('${t.id}')">✎</button><button class="icon-btn" onclick="deleteTxn('${t.id}')">✕</button></td></tr>`;
   });
 }
 
