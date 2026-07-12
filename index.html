@@ -231,7 +231,7 @@
 
         <div class="panel" id="loans-entries" style="padding:0; overflow:hidden;">
             <table>
-                <thead><tr><th>Name / Visual Progress</th><th>Type</th><th class="right">Amount</th><th>Date</th><th class="right" style="min-width:150px;">Interest (Left / Paid)</th><th class="right">Total Left</th><th class="right">Actions</th></tr></thead>
+                <thead><tr><th>Name / Visual Progress</th><th>Type</th><th class="right">Amount</th><th>Date</th><th class="right" style="min-width:150px;">Interest (Due / Recd-Paid)</th><th class="right">Total Left</th><th class="right">Actions</th></tr></thead>
                 <tbody id="loansTable"></tbody>
             </table>
         </div>
@@ -516,7 +516,7 @@
         <div class="field-row">
           <div class="field"><label>Payment Type</label>
             <div class="seg">
-                <button type="button" class="on" data-val="interest" onclick="setPaymentType('interest')">Interest</button>
+                <button type="button" class="on" data-val="interest" id="paymentTypeInterestBtn" onclick="setPaymentType('interest')">Interest</button>
                 <button type="button" data-val="principal" onclick="setPaymentType('principal')">Principal</button>
             </div>
             <input type="hidden" id="paymentType" value="interest">
@@ -650,7 +650,7 @@ function renderLoans(){
       </td>
       <td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type}</span></td>
       <td class="right num">${fmt(l.amount)}</td><td class="num" style="color:var(--text-secondary);">${l.date}</td>
-      <td class="right"><div class="num">${fmt(c.interest)}</div><div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">Paid: <span class="num">${fmt(c.interestPaid)}</span></div></td>
+      <td class="right"><div class="num">${fmt(c.interest)}</div><div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">${l.type==='given'?'Received':'Paid'}: <span class="num">${fmt(c.interestPaid)}</span></div></td>
       <td class="right num" style="font-weight:700;">${fmt(c.total)}</td>
       <td class="right">
         <span class="tag ${l.status==='Paid'?'tag-given':'tag-expense'}" style="margin-right:8px;">${l.status||'Pending'}</span>
@@ -877,15 +877,22 @@ function saveBudget(){ budgets[document.getElementById('budgetCategory').value] 
 function deleteBudget(c){ delete budgets[c]; saveAll(); }
 
 function openLedgerModal(id){
-  currentLedgerLoanId = id; const l = loans.find(x=>x.id===id); document.getElementById('ledgerTitle').textContent = `Manage: ${l.name}`;
+  currentLedgerLoanId = id; const l = loans.find(x=>x.id===id);
+  document.getElementById('ledgerTitle').textContent = `Manage: ${l.name}`;
+  const btn = document.getElementById('paymentTypeInterestBtn');
+  if(btn) btn.textContent = l.type==='given' ? 'Interest Received' : 'Interest Paid';
   document.getElementById('paymentAmount').value=''; document.getElementById('paymentDate').value=todayStr(); setPaymentType('interest'); renderLedger(); openModal('ledgerOverlay');
 }
 function renderLedger(){
   const l = loans.find(x=>x.id===currentLedgerLoanId); const c = computeLedger(l);
-  document.getElementById('ledgerSummaryCards').innerHTML = `<div style="flex:1;text-align:center;">Outstanding Principal<br><span class="num" style="font-size:20px;">${fmt(c.outstandingPrincipal)}</span></div> <div style="flex:1;text-align:center;">Unsettled Accruals<br><span class="num" style="font-size:20px;">${fmt(c.interest)}</span></div>`;
+  const interestLabel = l.type==='given' ? 'Interest Receivable' : 'Interest Payable';
+  document.getElementById('ledgerSummaryCards').innerHTML = `<div style="flex:1;text-align:center;">Outstanding Principal<br><span class="num" style="font-size:20px;">${fmt(c.outstandingPrincipal)}</span></div> <div style="flex:1;text-align:center;">${interestLabel}<br><span class="num" style="font-size:20px;">${fmt(c.interest)}</span></div>`;
   const tb = document.getElementById('ledgerPaymentsTable'); tb.innerHTML='';
   if(!(l.payments||[]).length) tb.innerHTML='<tr><td colspan="4" class="empty">Zero balance allocation history.</td></tr>';
-  (l.payments||[]).forEach(p=>tb.innerHTML+=`<tr><td class="num">${p.date}</td><td><span class="tag">${p.type}</span></td><td class="right num" style="font-weight:600;">${fmt(p.amount)}</td><td class="right"><button class="icon-btn" onclick="deletePayment('${p.id}')">✕</button></td></tr>`);
+  (l.payments||[]).forEach(p=>{
+    const typeLabel = p.type==='interest' ? (l.type==='given'?'Interest Received':'Interest Paid') : 'Principal';
+    tb.innerHTML+=`<tr><td class="num">${p.date}</td><td><span class="tag">${typeLabel}</span></td><td class="right num" style="font-weight:600;">${fmt(p.amount)}</td><td class="right"><button class="icon-btn" onclick="deletePayment('${p.id}')">✕</button></td></tr>`;
+  });
 }
 function savePayment(){
   const l = loans.find(x=>x.id===currentLedgerLoanId), amount = parseFloat(document.getElementById('paymentAmount').value);
