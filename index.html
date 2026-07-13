@@ -32,6 +32,7 @@
   h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 600; letter-spacing: -0.02em; }
   .num { font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em; }
 
+  /* CRITICAL MOBILE FIXES */
   .app { display: flex; height: 100dvh; min-height: 100vh; overflow: hidden; background: var(--bg); width: 100vw; }
   button, .btn, .icon-btn, .nav-item, .mobile-nav-item, .card, tr, .setting-item, .subnav button { touch-action: manipulation; user-select: none; }
   .content, .modal { -webkit-overflow-scrolling: touch; }
@@ -70,6 +71,7 @@
   .bank-card .label, .bank-card .value { color: #fff !important; }
   .bank-card::after { content: ''; position: absolute; top: -50%; right: -50%; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; z-index: 1; pointer-events: none;}
   
+  /* HDFC STYLE ACTIONS */
   .quick-actions { display: flex; gap: 12px; margin-bottom: 24px; width: 100%; }
   .quick-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 10px; color: var(--text-primary); font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; box-shadow: var(--shadow-soft); }
   .quick-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
@@ -139,7 +141,6 @@
   .subnav button.on { background: var(--accent); color: #000; border-color: var(--accent); }
 
   #appLockOverlay { background: var(--bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-  .mobile-nav { display: none; }
   .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); transition: 0.2s; }
   .pin-dot.filled { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); transform: scale(1.2); }
   .pin-pad { display: grid; grid-template-columns: repeat(3, 70px); gap: 20px; justify-content: center; margin: 0 auto; }
@@ -423,9 +424,16 @@
         <button class="icon-btn" onclick="closeModal('syncOverlay')">✕</button>
     </div>
     <p style="color:var(--text-secondary); font-size:13px; margin-bottom:20px;">Securely backup your financial data.</p>
+    
     <div id="syncStep2">
-      <div class="field"><label>Email Address</label><input type="email" id="authEmail" placeholder="your@email.com"></div>
-      <div class="field"><label>Password</label><input type="password" id="authPassword" placeholder="Minimum 6 characters"></div>
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="authEmail" placeholder="your@email.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="authPassword" placeholder="Minimum 6 characters">
+      </div>
       <div class="modal-actions" style="justify-content:flex-end; gap:10px;">
           <button type="button" class="btn btn-ghost" id="btnSignUp" onclick="doSignUp()">Create Acct</button>
           <button type="button" class="btn" id="btnSignIn" onclick="doSignIn()">Sign In</button>
@@ -918,7 +926,8 @@ function switchLoanTab(tab) { document.getElementById('btn-tab-entries').classLi
 function updateReminderBadge(){ const dueInfo = getDueLists(); const total = dueInfo.overdue.length + dueInfo.dueSoon.length; const topBadge = document.getElementById('badgeTop'); const botBadge = document.getElementById('badgeBottom'); if(topBadge) { topBadge.style.display = total ? 'inline-block' : 'none'; topBadge.textContent = total; } if(botBadge) { botBadge.style.display = total ? 'inline-block' : 'none'; botBadge.textContent = total; } }
 function renderReminders(){ const {overdue, dueSoon} = getDueLists(); const ot = document.getElementById('overdueTable'); ot.innerHTML=''; if(!overdue.length) ot.innerHTML='<tr><td colspan="3" class="empty">Zero clear overdue accounts</td></tr>'; overdue.forEach(({l,daysOver})=>{ ot.innerHTML += `<tr><td><div style="font-weight:600;">${l.name}</div></td><td class="right num">${fmt(l.amount)}</td><td class="right num" style="color:var(--red);font-weight:700;">${daysOver}d</td></tr>`; }); const dt = document.getElementById('dueSoonTable'); dt.innerHTML=''; if(!dueSoon.length) dt.innerHTML='<tr><td colspan="3" class="empty">Zero near-term deadlines.</td></tr>'; dueSoon.forEach(({l,daysLeft})=>{ dt.innerHTML += `<tr><td><div style="font-weight:600;">${l.name}</div></td><td class="right num">${fmt(l.amount)}</td><td class="right num" style="color:var(--accent);font-weight:700;">${daysLeft===0?'Today':daysLeft+'d'}</td></tr>`; }); }
 
-// ---------------- CLOUD CORE (REFRESH LOGOUT BUG FIX) ----------------
+
+// ---------------- CLOUD CORE (WITH AUTO-LOGIN FIX) ----------------
 function initFirebase(){
   try {
     if(typeof firebase === 'undefined') { console.error('Firebase SDK not loaded'); return; }
@@ -926,24 +935,29 @@ function initFirebase(){
     if(!firebase.apps.length) fbApp = firebase.initializeApp(cfg); else fbApp = firebase.app();
     fbAuth = firebase.auth(); fbDb = firebase.firestore();
 
-    // CRITICAL BUG FIX: setPersistence MUST complete BEFORE attaching onAuthStateChanged
-    fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => {
-        fbAuth.onAuthStateChanged(u => {
-            fbUser = u;
-            if(u) { listenToCloud(u.uid); }
-            renderProfile();
-        });
-    })
-    .catch(e => {
-        console.warn("Persistence error:", e);
-        // Fallback if local storage is blocked by Brave Shield
-        fbAuth.onAuthStateChanged(u => {
-            fbUser = u;
-            if(u) { listenToCloud(u.uid); }
-            renderProfile();
-        });
+    // Attach listener unconditionally to prevent UI hang
+    fbAuth.onAuthStateChanged(u => {
+        if(u) {
+            fbUser = u; listenToCloud(u.uid); renderProfile();
+        } else {
+            // CRITICAL FIX: Offline Auto-Login fallback for strict browsers
+            const savedE = localStorage.getItem('mh_auto_e');
+            const savedP = localStorage.getItem('mh_auto_p');
+            if(savedE && savedP) {
+                fbAuth.signInWithEmailAndPassword(atob(savedE), atob(savedP))
+                .catch(e => {
+                    localStorage.removeItem('mh_auto_e'); localStorage.removeItem('mh_auto_p');
+                    fbUser = null; renderProfile();
+                });
+            } else {
+                fbUser = null; renderProfile();
+            }
+        }
     });
+
+    // We still try standard persistence, but catch and ignore its strict errors
+    fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e=>console.warn("Standard persistence blocked"));
+
   } catch(e) { console.error(e); renderProfile(); }
 }
 
@@ -962,25 +976,41 @@ function listenToCloud(uid){
 function pushToCloud(){ if(fbUser && fbDb) fbDb.collection('maro-hisab-users').doc(fbUser.uid).set({loans, txns, budgets, accounts, appPin}); }
 
 function doSignUp(){
-  if(!fbAuth) return;
-  const e = document.getElementById('authEmail').value, p = document.getElementById('authPassword').value;
-  
-  // Force persistence right before login
+  if(!fbAuth) { alert('Connecting to cloud... please wait.'); initFirebase(); return; }
+  const e = document.getElementById('authEmail').value.trim();
+  const p = document.getElementById('authPassword').value.trim();
+  if(!e || !p) return showToast('Please enter Email and Password');
+
+  const btn = document.getElementById('btnSignUp'); 
+  btn.disabled = true; btn.textContent = "Loading...";
+
   fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .catch(err => console.warn("Persistence bypassed"))
   .then(() => fbAuth.createUserWithEmailAndPassword(e, p))
-  .then(()=>{ closeModal('syncOverlay'); showToast('Account Registered'); renderProfile(); })
-  .catch(err=>alert(err.message));
+  .then(()=>{ 
+      localStorage.setItem('mh_auto_e', btoa(e)); localStorage.setItem('mh_auto_p', btoa(p));
+      closeModal('syncOverlay'); showToast('Account Registered'); btn.disabled = false; btn.textContent = "Create Acct"; renderProfile(); 
+  })
+  .catch(err=>{ alert("Sign Up Error:\n" + err.message); btn.disabled = false; btn.textContent = "Create Acct"; });
 }
 
 function doSignIn(){
-  if(!fbAuth) return;
-  const e = document.getElementById('authEmail').value, p = document.getElementById('authPassword').value;
-  
-  // Force persistence right before login
+  if(!fbAuth) { alert('Connecting to cloud... please wait.'); initFirebase(); return; }
+  const e = document.getElementById('authEmail').value.trim();
+  const p = document.getElementById('authPassword').value.trim();
+  if(!e || !p) return showToast('Please enter Email and Password');
+
+  const btn = document.getElementById('btnSignIn'); 
+  btn.disabled = true; btn.textContent = "Loading...";
+
   fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .catch(err => console.warn("Persistence bypassed"))
   .then(() => fbAuth.signInWithEmailAndPassword(e, p))
-  .then(()=>{ closeModal('syncOverlay'); showToast('Signed In Successfully'); renderProfile(); })
-  .catch(err=>alert(err.message));
+  .then(()=>{ 
+      localStorage.setItem('mh_auto_e', btoa(e)); localStorage.setItem('mh_auto_p', btoa(p));
+      closeModal('syncOverlay'); showToast('Signed In Successfully'); btn.disabled = false; btn.textContent = "Sign In"; renderProfile(); 
+  })
+  .catch(err=>{ alert("Sign In Error:\n" + err.message); btn.disabled = false; btn.textContent = "Sign In"; });
 }
 
 function doSignOut(){ 
