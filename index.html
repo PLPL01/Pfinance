@@ -32,6 +32,7 @@
   h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 600; letter-spacing: -0.02em; }
   .num { font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em; }
 
+  /* CRITICAL MOBILE FIXES */
   .app { display: flex; height: 100dvh; min-height: 100vh; overflow: hidden; background: var(--bg); width: 100vw; }
   button, .btn, .icon-btn, .nav-item, .mobile-nav-item, .card, tr, .setting-item, .subnav button { touch-action: manipulation; user-select: none; }
   .content, .modal { -webkit-overflow-scrolling: touch; }
@@ -135,7 +136,7 @@
   .pin-pad { display: grid; grid-template-columns: repeat(3, 70px); gap: 20px; justify-content: center; margin: 0 auto; }
   .pin-pad button { width: 70px; height: 70px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--text-primary); font-size: 24px; cursor: pointer; }
 
-  /* STRICT MOBILE QUERY TO FIX DESKTOP RED CIRCLE BUG */
+  /* STRICT MEDIA QUERY TO FIX DESKTOP RED CIRCLE BUG */
   @media (min-width: 801px) {
     .mobile-nav { display: none !important; }
   }
@@ -261,6 +262,7 @@
             <button class="btn btn-ghost" style="margin-bottom:20px; font-weight:600;" onclick="closeAccountDetail()">← Back to Banks</button>
             <div class="card bank-card" id="detailBankCard" style="margin-bottom:24px; border-radius:var(--radius-lg); padding:32px;"></div>
 
+            <!-- Live Credit/Debit Matrix -->
             <div class="quick-actions">
                 <div class="quick-btn qb-green" onclick="quickBankTxn('income')">
                     <div class="ico">📥</div><div>+ Deposit (જમા)</div>
@@ -276,7 +278,6 @@
             <div class="panel">
                 <div class="panel-head">
                     <h3 class="gu">Transaction Passbook</h3>
-                    <button class="btn btn-ghost btn-sm" onclick="exportAccountCSV()">📥 CSV Flow</button>
                 </div>
                 <div class="table-wrapper">
                     <table>
@@ -334,10 +335,9 @@
         <div class="panel" id="budgetPanel"></div>
     </section>
 
-    <!-- FULLY RESTORED CALCULATORS HUB -->
+    <!-- CALCULATORS HUB -->
     <section class="view" id="view-calculators">
       <div class="panel-head"><h3 id="calcHubTitle" class="gu">Financial Calculators</h3><button class="btn btn-ghost btn-sm" id="calcBackBtn" style="display:none;" onclick="resetCalcHub()">← Categories</button></div>
-      
       <div id="calcCategoryGrid" class="cards" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
           <div class="card" onclick="openCalcTool('sip', 'SIP Calculator')"><div class="label">Investment</div><div class="value" style="font-size:18px;">SIP Calc</div></div>
           <div class="card" onclick="openCalcTool('emi', 'EMI Simulator')"><div class="label">Banking</div><div class="value" style="font-size:18px;">EMI Calc</div></div>
@@ -346,70 +346,20 @@
           <div class="card" onclick="openCalcTool('pct', 'Percentage Calcs')"><div class="label">Math</div><div class="value" style="font-size:18px;">Percentage</div></div>
           <div class="card" onclick="openCalcTool('mil', 'Mileage & Trip')"><div class="label">Auto</div><div class="value" style="font-size:18px;">Mileage Cost</div></div>
       </div>
-      
       <div id="activeCalcArea" style="display:none; max-width: 600px;">
-        <!-- SIP -->
-        <div id="calc-sip" class="panel calc-panel" style="display:none;"> 
-            <div class="field"><label>Monthly Investment (₹)</label><input type="number" id="sipAmount" value="5000" oninput="calcSIP()"></div> 
-            <div class="field-row"> 
-                <div class="field"><label>Return Rate (% p.a.)</label><input type="number" id="sipRate" value="12" oninput="calcSIP()"></div> 
-                <div class="field"><label>Years</label><input type="number" id="sipYears" value="10" oninput="calcSIP()"></div> 
-            </div> 
-            <div id="sipResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> 
-        </div>
-        <!-- EMI -->
-        <div id="calc-emi" class="panel calc-panel" style="display:none;"> 
-            <div class="field"><label>Loan Amount (₹)</label><input type="number" id="emiAmount" value="500000" oninput="calcEMI()"></div> 
-            <div class="field-row"> 
-                <div class="field"><label>Interest Rate (% p.a.)</label><input type="number" id="emiRate" value="9" oninput="calcEMI()"></div> 
-                <div class="field"><label>Tenure (Years)</label><input type="number" id="emiYears" value="5" oninput="calcEMI()"></div> 
-            </div> 
-            <div id="emiResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> 
-        </div>
-        <!-- GST -->
-        <div id="calc-gst" class="panel calc-panel" style="display:none;"> 
-            <div class="field-row"> 
-                <div class="field"><label>Amount (₹)</label><input type="number" id="gstAmount" value="10000" oninput="calcGST()"></div> 
-                <div class="field"><label>GST Rate (%)</label><select id="gstRate" onchange="calcGST()"><option value="5">5%</option><option value="12">12%</option><option value="18" selected>18%</option><option value="28">28%</option></select></div> 
-            </div> 
-            <div class="field"><label>Mode</label><select id="gstType" onchange="calcGST()"><option value="add">Add GST (+)</option><option value="remove">Remove GST (Inclusive)</option></select></div> 
-            <div id="gstResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> 
-        </div>
-        <!-- SI -->
-        <div id="calc-si" class="panel calc-panel" style="display:none;"> 
-            <div class="field-row"> 
-                <div class="field"><label>Principal (₹)</label><input type="number" id="siAmount" value="50000" oninput="calcSI()"></div> 
-                <div class="field"><label>Rate (% p.a.)</label><input type="number" id="siRate" value="2" oninput="calcSI()"></div> 
-            </div> 
-            <div class="field-row"> 
-                <div class="field"><label>Time Duration</label><input type="number" id="siTime" value="6" oninput="calcSI()"></div> 
-                <div class="field"><label>Time Format</label><select id="siType" onchange="calcSI()"><option value="years">Years</option><option value="months" selected>Months</option><option value="days">Days</option></select></div> 
-            </div> 
-            <div id="siResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> 
-        </div>
-        <!-- PCT -->
-        <div id="calc-pct" class="panel calc-panel" style="display:none;"> 
-            <div class="field-row"> 
-                <div class="field"><label>Base Value</label><input type="number" id="pctBase" value="2500" oninput="calcPct()"></div> 
-                <div class="field"><label>Percentage (%)</label><input type="number" id="pctRate" value="15" oninput="calcPct()"></div> 
-            </div> 
-            <div id="pctResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> 
-        </div>
-        <!-- MIL -->
-        <div id="calc-mil" class="panel calc-panel" style="display:none;"> 
-            <div class="field-row"> 
-                <div class="field"><label>Distance (KM)</label><input type="number" id="milDist" value="300" oninput="calcMileage()"></div> 
-                <div class="field"><label>Fuel Price (₹/L)</label><input type="number" id="milPrice" value="90" oninput="calcMileage()"></div> 
-            </div> 
-            <div class="field"><label>Fuel Used (Liters)</label><input type="number" id="milFuel" value="15" oninput="calcMileage()"></div> 
-            <div id="milResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> 
-        </div>
+        <div id="calc-sip" class="panel calc-panel" style="display:none;"> <div class="field"><label>Monthly Investment (₹)</label><input type="number" id="sipAmount" value="5000" oninput="calcSIP()"></div> <div class="field-row"> <div class="field"><label>Return Rate (% p.a.)</label><input type="number" id="sipRate" value="12" oninput="calcSIP()"></div> <div class="field"><label>Years</label><input type="number" id="sipYears" value="10" oninput="calcSIP()"></div> </div> <div id="sipResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> </div>
+        <div id="calc-emi" class="panel calc-panel" style="display:none;"> <div class="field"><label>Loan Amount (₹)</label><input type="number" id="emiAmount" value="500000" oninput="calcEMI()"></div> <div class="field-row"> <div class="field"><label>Interest Rate (% p.a.)</label><input type="number" id="emiRate" value="9" oninput="calcEMI()"></div> <div class="field"><label>Tenure (Years)</label><input type="number" id="emiYears" value="5" oninput="calcEMI()"></div> </div> <div id="emiResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> </div>
+        <div id="calc-gst" class="panel calc-panel" style="display:none;"> <div class="field-row"> <div class="field"><label>Amount (₹)</label><input type="number" id="gstAmount" value="10000" oninput="calcGST()"></div> <div class="field"><label>GST Rate (%)</label><select id="gstRate" onchange="calcGST()"><option value="5">5%</option><option value="12">12%</option><option value="18" selected>18%</option><option value="28">28%</option></select></div> </div> <div class="field"><label>Mode</label><select id="gstType" onchange="calcGST()"><option value="add">Add GST (+)</option><option value="remove">Remove GST (Inclusive)</option></select></div> <div id="gstResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> </div>
+        <div id="calc-si" class="panel calc-panel" style="display:none;"> <div class="field-row"> <div class="field"><label>Principal (₹)</label><input type="number" id="siAmount" value="50000" oninput="calcSI()"></div> <div class="field"><label>Rate (% p.a.)</label><input type="number" id="siRate" value="2" oninput="calcSI()"></div> </div> <div class="field-row"> <div class="field"><label>Time Duration</label><input type="number" id="siTime" value="6" oninput="calcSI()"></div> <div class="field"><label>Time Format</label><select id="siType" onchange="calcSI()"><option value="years">Years</option><option value="months" selected>Months</option><option value="days">Days</option></select></div> </div> <div id="siResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> </div>
+        <div id="calc-pct" class="panel calc-panel" style="display:none;"> <div class="field-row"> <div class="field"><label>Base Value</label><input type="number" id="pctBase" value="2500" oninput="calcPct()"></div> <div class="field"><label>Percentage (%)</label><input type="number" id="pctRate" value="15" oninput="calcPct()"></div> </div> <div id="pctResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> </div>
+        <div id="calc-mil" class="panel calc-panel" style="display:none;"> <div class="field-row"> <div class="field"><label>Distance (KM)</label><input type="number" id="milDist" value="300" oninput="calcMileage()"></div> <div class="field"><label>Fuel Price (₹/L)</label><input type="number" id="milPrice" value="90" oninput="calcMileage()"></div> </div> <div class="field"><label>Fuel Used (Liters)</label><input type="number" id="milFuel" value="15" oninput="calcMileage()"></div> <div id="milResult" class="num" style="margin-top:16px; font-weight:600; color:var(--accent); line-height:1.6;"></div> </div>
       </div>
     </section>
 
     <!-- PROFILE & TOOLS VIEW -->
     <section class="view" id="view-profile">
       
+      <!-- DEFAULT LOGGED OUT STATE (Never blank) -->
       <div id="profileSignedOut">
         <div class="panel" style="text-align:center; padding:40px 20px;">
           <div style="font-size:48px; margin-bottom:16px;">☁️</div>
@@ -642,16 +592,14 @@
 
 <!-- CORE LOGIC JAVASCRIPT -->
 <script>
-// INITIALIZATION
-let loans=[], txns=[], budgets=[], accounts=[], fbApp=null, fbAuth=null, fbDb=null, fbUser=null, fbUnsub=null;
+let loans=[], txns=[], budgets={}, accounts=[], fbApp=null, fbAuth=null, fbDb=null, fbUser=null, fbUnsub=null;
 let currentLedgerLoanId = null, currentPersonView = null, activeBankId = null;
 
-// UTILS
-function fmt(n) { return '₹' + (Math.round((n||0)*100)/100).toLocaleString('en-IN'); }
-function parseFmt(str) { if(!str) return 0; return parseFloat(str.toString().replace(/[^0-9.-]+/g, '')) || 0; }
-function todayStr() { return new Date().toISOString().slice(0,10); }
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+const fmt = n => '₹' + (Math.round((n||0)*100)/100).toLocaleString('en-IN');
+const todayStr = () => new Date().toISOString().slice(0,10);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 function daysBetween(d1, d2){ return Math.max(0, Math.round((new Date(d2)-new Date(d1))/86400000)); }
+function parseFmt(text){ return parseFloat((text||'0').replace(/[₹,]/g,'')) || 0; }
 
 function showToast(m){ const t = document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2500); }
 function openModal(id){ document.getElementById(id).classList.add('active'); if(id==='manageAccountsOverlay') renderManageAccounts(); if(id==='remindersOverlay') renderReminders(); }
@@ -673,38 +621,12 @@ function go(view){
   document.getElementById('view-'+view).classList.add('active');
   const titles = {dashboard:'Dashboard Overview', accounts:'Bank & Wallets', loans:'Loan Management', txns:'Transactions & Filters', budget:'Monthly Limits', calculators:'Financial Calculators', profile:'Profile & Settings'};
   document.getElementById('viewTitle').textContent = titles[view] || 'My Ledger';
-  
   if(view === 'accounts') closeAccountDetail();
   try {
       if(view==='profile') renderProfile();
       if(view==='dashboard') renderDashboardCharts();
       if(view==='calculators') { resetCalcHub(); calcSIP(); calcEMI(); calcGST(); calcSI(); calcPct(); calcMileage(); }
   } catch(e) { console.error(e); }
-}
-
-function loadAll(){
-  try{ loans = JSON.parse(localStorage.getItem('mh_loans')||'[]'); }catch(e){ loans = []; }
-  try{ txns = JSON.parse(localStorage.getItem('mh_transactions')||'[]'); }catch(e){ txns = []; }
-  try{ budgets = JSON.parse(localStorage.getItem('mh_budgets')||'{}'); }catch(e){ budgets = {}; }
-  try{ accounts = JSON.parse(localStorage.getItem('mh_accounts')); if(!accounts || !accounts.length) accounts = [{id:uid(), name:'Cash Wallet', type:'cash'}, {id:uid(), name:'HDFC Bank', type:'bank'}]; }catch(e){ accounts = [{id:uid(), name:'Cash Wallet', type:'cash'}, {id:uid(), name:'HDFC Bank', type:'bank'}]; }
-  
-  renderAll();
-  initFirebase();
-}
-
-function saveAll(){
-  localStorage.setItem('mh_loans', JSON.stringify(loans));
-  localStorage.setItem('mh_transactions', JSON.stringify(txns));
-  localStorage.setItem('mh_budgets', JSON.stringify(budgets));
-  localStorage.setItem('mh_accounts', JSON.stringify(accounts));
-  pushToCloud(); renderAll();
-}
-
-function renderAll(){
-  populateAccountDropdowns();
-  [renderAccountsWidget, renderSingleAccount, renderDashboard, renderLoans, renderTxns, renderBudget, updateReminderBadge].forEach(fn=>{
-    try{ fn(); }catch(e){ console.error(fn.name + ' failed:', e); }
-  });
 }
 
 // ---------------- ACCOUNTS & WALLETS ----------------
@@ -796,7 +718,26 @@ function deleteAccount(id){
     accounts = accounts.filter(a=>a.id!==id); saveAll(); renderManageAccounts();
 }
 
-// ---------------- DASHBOARD & CHARTS ----------------
+// ---------------- TRANSACTIONS ----------------
+function renderTxns(){
+  const tbody = document.getElementById('txnsTable'); tbody.innerHTML=''; const summaryContainer = document.getElementById('txnSummaryCards');
+  const q = (document.getElementById('txnSearch')?.value||'').toLowerCase();
+  const f = txns.filter(t=>isDateInFilter(t.date) && (!q || (t.category||'').toLowerCase().includes(q) || (t.note||'').toLowerCase().includes(q)));
+  let totalInc = 0, totalExp = 0; f.forEach(t => { if(t.type==='income') totalInc += t.amount; else if(t.type==='expense') totalExp += t.amount; });
+  summaryContainer.innerHTML = `<div class="card" style="padding:16px;"><div class="label">Filtered Income</div><div class="value pos num" style="font-size:22px;">${fmt(totalInc)}</div></div><div class="card" style="padding:16px;"><div class="label">Filtered Expense</div><div class="value neg num" style="font-size:22px;">${fmt(totalExp)}</div></div><div class="card" style="padding:16px;"><div class="label">Net Balance</div><div class="value num ${totalInc-totalExp>=0?'pos':'neg'}" style="font-size:22px;">${fmt(totalInc-totalExp)}</div></div>`;
+  if(!f.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty">No records matched.</td></tr>`; return; }
+  f.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
+    let accName = accounts.find(a=>a.id===t.accountId)?.name || 'Cash'; let typeClass = t.type==='income'?'tag-income':(t.type==='expense'?'tag-expense':'tag-transfer'); let displayAmt = t.type==='income'?'+':(t.type==='expense'?'-':'⇄ ');
+    if(t.type==='transfer'){ accName = `${accounts.find(a=>a.id===t.fromAccountId)?.name||'-'} ➝ ${accounts.find(a=>a.id===t.toAccountId)?.name||'-'}`; }
+    tbody.innerHTML += `<tr><td class="num" style="color:var(--text-secondary);">${t.date}</td><td><span class="tag ${typeClass}">${t.type}</span></td><td style="font-weight:500;">${t.category||'Self Transfer'} <span style="font-size:11px; color:var(--accent); display:block; font-weight:400; margin-top:2px;">[${accName}]</span></td><td class="right num ${t.type==='income'?'pos':(t.type==='expense'?'neg':'')}" style="font-weight:600;">${displayAmt}${fmt(t.amount)}</td><td style="color:var(--text-secondary);">${t.note||'-'}</td><td class="right"><button class="icon-btn" onclick="openTxnModal('${t.id}')">✎</button> <button class="icon-btn" onclick="deleteTxn('${t.id}')">✕</button></td></tr>`;
+  });
+}
+function setTxnType(t){ document.getElementById('txnType').value=t; document.querySelectorAll('#txnOverlay .seg button').forEach(b=>b.classList.toggle('on', b.dataset.val===t)); if(t==='transfer'){ document.getElementById('txnStandardFields').style.display='none'; document.getElementById('txnTransferFields').style.display='block'; }else{ document.getElementById('txnStandardFields').style.display='block'; document.getElementById('txnTransferFields').style.display='none'; } }
+function openTxnModal(id){ document.getElementById('txnId').value = id||''; populateAccountDropdowns(); if(id){ const t = txns.find(x=>x.id===id); ['Amount','Date','Category','Note'].forEach(k=> document.getElementById('txn'+k).value=t[k.toLowerCase()]||''); setTxnType(t.type); if(t.type==='transfer'){ document.getElementById('txnFromAccount').value = t.fromAccountId; document.getElementById('txnToAccount').value = t.toAccountId; }else{ document.getElementById('txnAccount').value = t.accountId; } } else { ['Amount','Category','Note'].forEach(k=> document.getElementById('txn'+k).value=''); setTxnType('expense'); document.getElementById('txnDate').value=todayStr(); } openModal('txnOverlay'); }
+function saveTxn(){ const type = document.getElementById('txnType').value; const amount = parseFloat(document.getElementById('txnAmount').value); if(!amount || amount<=0) return showToast('Enter valid amount'); const obj = { id: document.getElementById('txnId').value||uid(), type, amount, date: document.getElementById('txnDate').value||todayStr(), note: document.getElementById('txnNote').value }; if(type === 'transfer'){ obj.fromAccountId = document.getElementById('txnFromAccount').value; obj.toAccountId = document.getElementById('txnToAccount').value; if(obj.fromAccountId === obj.toAccountId) return showToast('Select different accounts'); } else { obj.category = document.getElementById('txnCategory').value || 'Other'; obj.accountId = document.getElementById('txnAccount').value; } txns = txns.filter(x=>x.id!==obj.id); txns.push(obj); saveAll(); closeModal('txnOverlay'); showToast('Transaction saved!'); }
+function deleteTxn(id){ if(confirm('Delete transaction?')){ txns=txns.filter(x=>x.id!==id); saveAll(); } }
+
+// ---------------- DASHBOARD ----------------
 function renderDashboard(){
   const filteredTxns = txns.filter(t=>isDateInFilter(t.date));
   const inc = filteredTxns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0); const exp = filteredTxns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
@@ -854,46 +795,21 @@ function renderLoans(){
   });
   renderPeople();
 }
-
 function renderPeople(){ const container = document.getElementById('peopleCards'); if(!container) return; container.innerHTML = ''; const names = [...new Set(loans.map(l=>l.name))]; if(!names.length) { container.innerHTML = '<div class="empty gu" style="grid-column: 1/-1;">No people found.</div>'; return; } names.forEach(name=>{ let givenAmt=0, takenAmt=0; loans.filter(l=>l.name===name).forEach(l=>{ const c = computeLedger(l); if(l.type==='given') givenAmt+=c.total; else takenAmt+=c.total; }); const net = givenAmt - takenAmt; container.innerHTML += `<div class="card" style="cursor:pointer; padding:20px;" onclick="openPersonDetail('${name}')"><h3 style="margin:0 0 16px 0; color:var(--accent); font-size:18px;">${name}</h3><div style="display:flex; justify-content:space-between; margin-bottom:12px;"><div><div style="font-size:11px; color:var(--text-secondary);">Owed to You</div><div class="num pos">${fmt(givenAmt)}</div></div><div style="text-align:right;"><div style="font-size:11px; color:var(--text-secondary);">You Owe</div><div class="num neg">${fmt(takenAmt)}</div></div></div><div style="border-top:1px solid var(--border); padding-top:12px; display:flex; justify-content:space-between; align-items:center;"><div style="font-size:12px; font-weight:600;">NET</div><div class="num ${net>=0?'pos':'neg'}">${fmt(Math.abs(net))} ${net>=0?'(Recv)':'(Pay)'}</div></div></div>`; });}
 function openPersonDetail(name){ currentPersonView = name; document.getElementById('personModalName').textContent = `Transactions: ${name}`; const tbody = document.getElementById('personEntriesTable'); tbody.innerHTML = ''; loans.filter(l=>l.name===name).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(l=>{ const c = computeLedger(l); tbody.innerHTML += `<tr style="cursor:pointer;" onclick="if(!event.target.closest('button')) { closeModal('personOverlay'); openLedgerModal('${l.id}'); }"><td><span class="tag ${l.type==='given'?'tag-given':'tag-taken'}">${l.type}</span></td><td class="right num">${fmt(l.amount)}</td><td class="num">${l.date}</td><td class="right num" style="font-weight:700;">${fmt(c.total)}</td><td class="right"><button class="icon-btn" onclick="closeModal('personOverlay');openLoanModal('${l.id}')">✎</button></td></tr>`; }); openModal('personOverlay'); }
 function addEntryForPerson(){ const name=currentPersonView; closeModal('personOverlay'); openLoanModal(); document.getElementById('loanName').value=name; }
 function switchLoanTab(tab) { document.getElementById('btn-tab-entries').classList.toggle('on', tab === 'entries'); document.getElementById('btn-tab-people').classList.toggle('on', tab === 'people'); document.getElementById('loans-entries').style.display = tab === 'entries' ? 'block' : 'none'; document.getElementById('loans-people').style.display = tab === 'people' ? 'block' : 'none'; if(tab === 'people') renderPeople(); }
 
 function setLoanType(type){ document.getElementById('loanType').value = type; document.querySelectorAll('#loanOverlay .seg button').forEach(b=> b.classList.toggle('on', b.dataset.val===type)); }
-function openLoanModal(id){ document.getElementById('loanId').value = id||''; if(id){ const l = loans.find(x=>x.id===id); ['Name','Amount','Rate','Date','ReturnDate'].forEach(k=> document.getElementById('loan'+k).value=l[k.toLowerCase()]); setLoanType(l.type); } else { ['Name','Amount','Rate'].forEach(k=> document.getElementById('loan'+k).value=''); setLoanType('given'); document.getElementById('loanDate').value=todayStr(); document.getElementById('loanReturnDate').value=todayStr(); } openModal('loanOverlay'); }
-function saveLoan(){
-  const name = document.getElementById('loanName').value.trim(); const amount = parseFloat(document.getElementById('loanAmount').value);
-  if(!name || !amount || amount<=0) return showToast('Enter valid details');
-  const id=document.getElementById('loanId').value||uid(); const existing = loans.find(x=>x.id===id);
-  const obj = {id, name, type:document.getElementById('loanType').value, amount, rate:parseFloat(document.getElementById('loanRate').value)||0, date:document.getElementById('loanDate').value||todayStr(), returnDate:document.getElementById('loanReturnDate').value||todayStr(), status: existing ? existing.status : 'Pending', payments: existing ? existing.payments : []};
-  loans = loans.filter(x=>x.id!==id); loans.push(obj); saveAll(); closeModal('loanOverlay'); showToast('Loan saved');
-}
-
-function openLedgerModal(id){ currentLedgerLoanId = id; const l = loans.find(x=>x.id===id); if(!l) return; document.getElementById('ledgerTitle').textContent = `Manage: ${l.name}`; document.getElementById('paymentAmount').value=''; document.getElementById('paymentDate').value=todayStr(); setPaymentType('interest'); renderLedger(); openModal('ledgerOverlay'); }
 function setPaymentType(type){ document.getElementById('paymentType').value = type; document.querySelectorAll('#ledgerOverlay .seg button').forEach(b=> b.classList.toggle('on', b.dataset.val===type)); }
+function openLoanModal(id){ document.getElementById('loanId').value = id||''; if(id){ const l = loans.find(x=>x.id===id); ['Name','Amount','Rate','Date','ReturnDate'].forEach(k=> document.getElementById('loan'+k).value=l[k.toLowerCase()]); setLoanType(l.type); } else { ['Name','Amount','Rate'].forEach(k=> document.getElementById('loan'+k).value=''); setLoanType('given'); document.getElementById('loanDate').value=todayStr(); document.getElementById('loanReturnDate').value=todayStr(); } openModal('loanOverlay'); }
+function saveLoan(){ const name = document.getElementById('loanName').value.trim(); const amount = parseFloat(document.getElementById('loanAmount').value); if(!name) return showToast('Enter a name'); if(!amount || amount<=0) return showToast('Enter a valid amount'); const id=document.getElementById('loanId').value||uid(); const existing = loans.find(x=>x.id===id); const obj = {id, name, type:document.getElementById('loanType').value, amount, rate:parseFloat(document.getElementById('loanRate').value)||0, date:document.getElementById('loanDate').value||todayStr(), returnDate:document.getElementById('loanReturnDate').value||todayStr(), status: existing ? existing.status : 'Pending', payments: existing ? existing.payments : []}; loans = loans.filter(x=>x.id!==id); loans.push(obj); saveAll(); closeModal('loanOverlay'); showToast('Loan saved'); }
+function deleteLoan(id){ if(confirm('Delete record?')){ loans=loans.filter(x=>x.id!==id); saveAll(); } }
+
+function openLedgerModal(id){ currentLedgerLoanId = id; const l = loans.find(x=>x.id===id); if(!l) return; document.getElementById('ledgerTitle').textContent = `Manage: ${l.name}`; const btn = document.getElementById('paymentTypeInterestBtn'); if(btn) btn.textContent = l.type==='given' ? 'Interest Received' : 'Interest Paid'; document.getElementById('paymentAmount').value=''; document.getElementById('paymentDate').value=todayStr(); setPaymentType('interest'); renderLedger(); openModal('ledgerOverlay'); }
 function renderLedger(){ const l = loans.find(x=>x.id===currentLedgerLoanId); const c = computeLedger(l); const interestLabel = l.type==='given' ? 'Interest Receivable' : 'Interest Payable'; document.getElementById('ledgerSummaryCards').innerHTML = `<div style="flex:1;text-align:center;">Outstanding Principal<br><span class="num" style="font-size:20px;">${fmt(c.outstandingPrincipal)}</span></div> <div style="flex:1;text-align:center;">${interestLabel}<br><span class="num" style="font-size:20px;">${fmt(c.interest)}</span></div>`; const tb = document.getElementById('ledgerPaymentsTable'); tb.innerHTML=''; if(!(l.payments||[]).length) tb.innerHTML='<tr><td colspan="4" class="empty">Zero balance allocation history.</td></tr>'; (l.payments||[]).forEach(p=>{ const typeLabel = p.type==='interest' ? (l.type==='given'?'Interest Received':'Interest Paid') : 'Principal'; tb.innerHTML+=`<tr><td class="num">${p.date}</td><td><span class="tag">${typeLabel}</span></td><td class="right num" style="font-weight:600;">${fmt(p.amount)}</td><td class="right print-hide"><button class="icon-btn" onclick="deletePayment('${p.id}')">✕</button></td></tr>`; }); }
 function savePayment(){ const l = loans.find(x=>x.id===currentLedgerLoanId), amount = parseFloat(document.getElementById('paymentAmount').value); if(!l || !amount || amount<=0) return showToast('Invalid input data volume'); if(!l.payments) l.payments = []; l.payments.push({ id: uid(), type: document.getElementById('paymentType').value, amount, date: document.getElementById('paymentDate').value||todayStr() }); const c = computeLedger(l); if(c.outstandingPrincipal <= 0 && c.interest <= 0) l.status = 'Paid'; else l.status = 'Partial'; saveAll(); renderLedger(); showToast('Repayment verified cleanly'); }
 function deletePayment(id){ const l = loans.find(x=>x.id===currentLedgerLoanId); l.payments=l.payments.filter(x=>x.id!==id); const c = computeLedger(l); l.status=(l.payments.length===0)?'Pending':(c.outstandingPrincipal<=0&&c.interest<=0?'Paid':'Partial'); saveAll(); renderLedger(); }
-
-// ---------------- TRANSACTIONS ----------------
-function renderTxns(){
-  const tbody = document.getElementById('txnsTable'); tbody.innerHTML=''; const summaryContainer = document.getElementById('txnSummaryCards');
-  const q = (document.getElementById('txnSearch')?.value||'').toLowerCase();
-  const f = txns.filter(t=>isDateInFilter(t.date) && (!q || (t.category||'').toLowerCase().includes(q) || (t.note||'').toLowerCase().includes(q)));
-  let totalInc = 0, totalExp = 0; f.forEach(t => { if(t.type==='income') totalInc += t.amount; else if(t.type==='expense') totalExp += t.amount; });
-  summaryContainer.innerHTML = `<div class="card" style="padding:16px;"><div class="label">Filtered Income</div><div class="value pos num" style="font-size:22px;">${fmt(totalInc)}</div></div><div class="card" style="padding:16px;"><div class="label">Filtered Expense</div><div class="value neg num" style="font-size:22px;">${fmt(totalExp)}</div></div><div class="card" style="padding:16px;"><div class="label">Net Balance</div><div class="value num ${totalInc-totalExp>=0?'pos':'neg'}" style="font-size:22px;">${fmt(totalInc-totalExp)}</div></div>`;
-  if(!f.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty">No records matched.</td></tr>`; return; }
-  f.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(t=>{
-    let accName = accounts.find(a=>a.id===t.accountId)?.name || 'Cash'; let typeClass = t.type==='income'?'tag-income':(t.type==='expense'?'tag-expense':'tag-transfer'); let displayAmt = t.type==='income'?'+':(t.type==='expense'?'-':'⇄ ');
-    if(t.type==='transfer'){ accName = `${accounts.find(a=>a.id===t.fromAccountId)?.name||'-'} ➝ ${accounts.find(a=>a.id===t.toAccountId)?.name||'-'}`; }
-    tbody.innerHTML += `<tr><td class="num" style="color:var(--text-secondary);">${t.date}</td><td><span class="tag ${typeClass}">${t.type}</span></td><td style="font-weight:500;">${t.category||'Self Transfer'} <span style="font-size:11px; color:var(--accent); display:block; font-weight:400; margin-top:2px;">[${accName}]</span></td><td class="right num ${t.type==='income'?'pos':(t.type==='expense'?'neg':'')}" style="font-weight:600;">${displayAmt}${fmt(t.amount)}</td><td style="color:var(--text-secondary);">${t.note||'-'}</td><td class="right"><button class="icon-btn" onclick="openTxnModal('${t.id}')">✎</button> <button class="icon-btn" onclick="deleteTxn('${t.id}')">✕</button></td></tr>`;
-  });
-}
-function setTxnType(t){ document.getElementById('txnType').value=t; document.querySelectorAll('#txnOverlay .seg button').forEach(b=>b.classList.toggle('on', b.dataset.val===t)); if(t==='transfer'){ document.getElementById('txnStandardFields').style.display='none'; document.getElementById('txnTransferFields').style.display='block'; }else{ document.getElementById('txnStandardFields').style.display='block'; document.getElementById('txnTransferFields').style.display='none'; } }
-function openTxnModal(id){ document.getElementById('txnId').value = id||''; populateAccountDropdowns(); if(id){ const t = txns.find(x=>x.id===id); ['Amount','Date','Category','Note'].forEach(k=> document.getElementById('txn'+k).value=t[k.toLowerCase()]||''); setTxnType(t.type); if(t.type==='transfer'){ document.getElementById('txnFromAccount').value = t.fromAccountId; document.getElementById('txnToAccount').value = t.toAccountId; }else{ document.getElementById('txnAccount').value = t.accountId; } } else { ['Amount','Category','Note'].forEach(k=> document.getElementById('txn'+k).value=''); setTxnType('expense'); document.getElementById('txnDate').value=todayStr(); } openModal('txnOverlay'); }
-function saveTxn(){ const type = document.getElementById('txnType').value; const amount = parseFloat(document.getElementById('txnAmount').value); if(!amount || amount<=0) return showToast('Enter valid amount'); const obj = { id: document.getElementById('txnId').value||uid(), type, amount, date: document.getElementById('txnDate').value||todayStr(), note: document.getElementById('txnNote').value }; if(type === 'transfer'){ obj.fromAccountId = document.getElementById('txnFromAccount').value; obj.toAccountId = document.getElementById('txnToAccount').value; if(obj.fromAccountId === obj.toAccountId) return showToast('Select different accounts'); } else { obj.category = document.getElementById('txnCategory').value || 'Other'; obj.accountId = document.getElementById('txnAccount').value; } txns = txns.filter(x=>x.id!==obj.id); txns.push(obj); saveAll(); closeModal('txnOverlay'); showToast('Transaction verified'); }
-function deleteTxn(id){ if(confirm('Delete transaction?')){ txns=txns.filter(x=>x.id!==id); saveAll(); } }
 
 // ---------------- CALCULATORS ----------------
 function openCalcTool(id, title) { document.getElementById('calcCategoryGrid').style.display = 'none'; document.getElementById('activeCalcArea').style.display = 'block'; document.querySelectorAll('.calc-panel').forEach(p => p.style.display = 'none'); const panel = document.getElementById('calc-' + id); if (panel) panel.style.display = 'block'; document.getElementById('calcHubTitle').textContent = title; document.getElementById('calcBackBtn').style.display = 'inline-block'; if(id==='sip') calcSIP(); if(id==='emi') calcEMI(); if(id==='gst') calcGST(); if(id==='si') calcSI(); if(id==='pct') calcPct(); if(id==='mil') calcMileage(); }
@@ -928,28 +844,15 @@ function runDiagnostics(){
   showToast(failCount ? `⚠ ${failCount} errors found` : `✅ All systems perfect`);
 }
 
-// ---------------- ALERTS ----------------
-function getDueLists(){
-  const today = todayStr(); const overdue = [], dueSoon = [];
-  loans.forEach(l=>{
-    if(l.status === 'Paid') return; const due = l.returnDate || l.date;
-    if(due < today) overdue.push({l, daysOver: daysBetween(due, today)});
-    else if(daysBetween(today, due) <= 7) dueSoon.push({l, daysLeft: daysBetween(today, due)});
-  });
-  return {overdue: overdue.sort((a,b)=>b.daysOver-a.daysOver), dueSoon: dueSoon.sort((a,b)=>a.daysLeft-b.daysLeft)};
-}
-function updateReminderBadge(){ const dueInfo = getDueLists(); const total = dueInfo.overdue.length + dueInfo.dueSoon.length; const topBadge = document.getElementById('badgeTop'); const botBadge = document.getElementById('badgeBottom'); if(topBadge) { topBadge.style.display = total ? 'inline-block' : 'none'; topBadge.textContent = total; } if(botBadge) { botBadge.style.display = total ? 'inline-block' : 'none'; botBadge.textContent = total; } }
-function renderReminders(){ const {overdue, dueSoon} = getDueLists(); const ot = document.getElementById('overdueTable'); ot.innerHTML=''; if(!overdue.length) ot.innerHTML='<tr><td colspan="3" class="empty">Zero clear overdue accounts</td></tr>'; overdue.forEach(({l,daysOver})=>{ ot.innerHTML += `<tr><td><div style="font-weight:600;">${l.name}</div></td><td class="right num">${fmt(l.amount)}</td><td class="right num" style="color:var(--red);font-weight:700;">${daysOver}d</td></tr>`; }); const dt = document.getElementById('dueSoonTable'); dt.innerHTML=''; if(!dueSoon.length) dt.innerHTML='<tr><td colspan="3" class="empty">Zero near-term deadlines.</td></tr>'; dueSoon.forEach(({l,daysLeft})=>{ dt.innerHTML += `<tr><td><div style="font-weight:600;">${l.name}</div></td><td class="right num">${fmt(l.amount)}</td><td class="right num" style="color:var(--accent);font-weight:700;">${daysLeft===0?'Today':daysLeft+'d'}</td></tr>`; }); }
-
 // ---------------- CLOUD CORE (MASTER OFFLINE LOGIN FIX) ----------------
 function initFirebase(){
   try {
-    if(typeof firebase === 'undefined') { console.error('Firebase SDK missing'); return; }
+    if(typeof firebase === 'undefined') return;
     const cfg = { apiKey: "AIzaSyA3037mG-4lYelAYyJOOBlH2HMphZv3zuw", authDomain: "m-finance1.firebaseapp.com", projectId: "m-finance1" };
     if(!firebase.apps.length) firebase.initializeApp(cfg);
     fbAuth = firebase.auth(); fbDb = firebase.firestore();
 
-    // Instant Offline Render Fix
+    // 1. Instant Offline Render Fix
     const localUserStr = localStorage.getItem('mh_user');
     if(localUserStr) {
         fbUser = JSON.parse(localUserStr);
@@ -1050,7 +953,10 @@ function renderProfile(){
 function editName() { if(!fbUser) return; const n = prompt("Enter Name:", fbUser.displayName||""); if(n) fbUser.updateProfile({displayName: n.trim()}).then(()=>{ showToast('Updated'); renderProfile(); }); }
 function toggleTheme(){ const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',t); localStorage.setItem('mh_theme',t); document.querySelectorAll('#themeText').forEach(l=>l.textContent=t==='dark'?'Light Mode':'Dark Mode'); document.querySelectorAll('#themeIco').forEach(l=>l.textContent=t==='dark'?'☀️':'🌙'); if(dashChartMonthly) renderDashboardCharts(); }
 
-// PIN Gatekeeper
+// Backup & PIN Gatekeeper
+function exportData(){ const p = prompt("Backup password:"); if(!p) return; const enc = CryptoJS.AES.encrypt(JSON.stringify({loans, txns, budgets, accounts}), p).toString(); triggerDownload('MyLedger_Backup.enc', enc); showToast('Exported'); }
+function importData(e){ const f=e.target.files[0]; if(!f) return; const p = prompt("Decryption Key:"); const r = new FileReader(); r.onload=ev=>{ try{ const d=JSON.parse(CryptoJS.AES.decrypt(ev.target.result, p).toString(CryptoJS.enc.Utf8)); loans=d.loans; txns=d.txns; budgets=d.budgets; accounts=d.accounts||accounts; saveAll(); showToast("Restored Successfully!"); } catch(err){ showToast("Failed."); } }; r.readAsText(f); e.target.value=''; }
+
 let appPin = localStorage.getItem('mh_app_pin')||'', enteredPin='', isSettingPin=false, tempPin='';
 function checkLock(){ document.getElementById('appLockOverlay').style.display=appPin?'flex':'none'; document.querySelectorAll('#pinText').forEach(el=>el.textContent = appPin?'Remove PIN Lock':'Set PIN Lock'); document.querySelectorAll('#pinIco').forEach(el=>el.textContent = appPin?'🔓':'🔒'); }
 function updatePinUI(){ document.querySelectorAll('.pin-dot').forEach((d,i)=>d.classList.toggle('filled', i<enteredPin.length)); }
@@ -1066,8 +972,12 @@ function processPin(){
 function pinForgot(){ if(confirm('Reset Application? Local cache will clear.')){ localStorage.clear(); location.reload(); } }
 function togglePinSetup(){ if(appPin){ appPin=''; localStorage.removeItem('mh_app_pin'); pushToCloud(); checkLock(); showToast('PIN Removed'); } else{ isSettingPin=true; enteredPin=''; tempPin=''; document.getElementById('lockTitle').textContent='Set 4-Digit PIN'; document.getElementById('appLockOverlay').style.display='flex'; updatePinUI(); } }
 
+// BOOT
 document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
 document.documentElement.setAttribute('data-theme', localStorage.getItem('mh_theme')||'dark');
+document.querySelectorAll('#themeText').forEach(l=>l.textContent=localStorage.getItem('mh_theme')==='light'?'Dark Mode':'Light Mode');
+document.querySelectorAll('#themeIco').forEach(l=>l.textContent=localStorage.getItem('mh_theme')==='light'?'🌙':'☀️');
+
 loadAll(); checkLock();
 setTimeout(()=>{ if(!fbAuth) initFirebase(); }, 1500);
 </script>
