@@ -140,13 +140,14 @@
   .subnav button.on { background: var(--accent); color: #000; border-color: var(--accent); }
 
   #appLockOverlay { background: var(--bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .mobile-nav { display: none; }
   .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); transition: 0.2s; }
   .pin-dot.filled { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); transform: scale(1.2); }
   .pin-pad { display: grid; grid-template-columns: repeat(3, 70px); gap: 20px; justify-content: center; margin: 0 auto; }
   .pin-pad button { width: 70px; height: 70px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--text-primary); font-size: 24px; font-weight: 400; transition: 0.1s; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
   .pin-pad button:active { background: var(--accent); color: #000; transform: scale(0.9); }
 
-  /* CRITICAL UI FIX FOR RED CIRCLE BUG */
+  /* FIX 1: STRICT MEDIA QUERY FOR MOBILE NAV */
   @media (min-width: 801px) {
     .mobile-nav { display: none !important; }
   }
@@ -182,7 +183,6 @@
 </head>
 <body>
 
-<!-- PIN LOCK OVERLAY -->
 <div id="appLockOverlay" style="position:fixed; inset:0; z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center;">
   <div style="font-size:36px; margin-bottom:16px;">🔒</div>
   <h2 id="lockTitle" style="color:var(--text-primary); margin-bottom:0;">Enter PIN</h2>
@@ -380,12 +380,12 @@
     <!-- PROFILE & TOOLS VIEW -->
     <section class="view" id="view-profile">
       
-      <!-- DEFAULT LOGGED OUT STATE -->
+      <!-- DEFAULT LOGGED OUT STATE (Never blank) -->
       <div id="profileSignedOut">
         <div class="panel" style="text-align:center; padding:40px 20px;">
           <div style="font-size:48px; margin-bottom:16px;">☁️</div>
           <h3 style="margin-bottom:10px;">Cloud Sync & Account</h3>
-          <p style="color:var(--text-secondary); font-size:14px; max-width:400px; margin:0 auto 24px;">Sign in to securely sync your data across devices. Fast auto-login enabled for all browsers.</p>
+          <p style="color:var(--text-secondary); font-size:14px; max-width:400px; margin:0 auto 24px;">Sign in to securely sync your data across devices.</p>
           <button class="btn" onclick="openModal('syncOverlay')">⚙️ Setup Sync / Login</button>
         </div>
       </div>
@@ -942,15 +942,18 @@ function switchLoanTab(tab) { document.getElementById('btn-tab-entries').classLi
 function updateReminderBadge(){ const dueInfo = getDueLists(); const total = dueInfo.overdue.length + dueInfo.dueSoon.length; const topBadge = document.getElementById('badgeTop'); const botBadge = document.getElementById('badgeBottom'); if(topBadge) { topBadge.style.display = total ? 'inline-block' : 'none'; topBadge.textContent = total; } if(botBadge) { botBadge.style.display = total ? 'inline-block' : 'none'; botBadge.textContent = total; } }
 function renderReminders(){ const {overdue, dueSoon} = getDueLists(); const ot = document.getElementById('overdueTable'); ot.innerHTML=''; if(!overdue.length) ot.innerHTML='<tr><td colspan="3" class="empty">Zero clear overdue accounts</td></tr>'; overdue.forEach(({l,daysOver})=>{ ot.innerHTML += `<tr><td><div style="font-weight:600;">${l.name}</div></td><td class="right num">${fmt(l.amount)}</td><td class="right num" style="color:var(--red);font-weight:700;">${daysOver}d</td></tr>`; }); const dt = document.getElementById('dueSoonTable'); dt.innerHTML=''; if(!dueSoon.length) dt.innerHTML='<tr><td colspan="3" class="empty">Zero near-term deadlines.</td></tr>'; dueSoon.forEach(({l,daysLeft})=>{ dt.innerHTML += `<tr><td><div style="font-weight:600;">${l.name}</div></td><td class="right num">${fmt(l.amount)}</td><td class="right num" style="color:var(--accent);font-weight:700;">${daysLeft===0?'Today':daysLeft+'d'}</td></tr>`; }); }
 
-// ---------------- CLOUD CORE (SMART AUTO-LOGIN FIX) ----------------
+
+// ---------------- CLOUD CORE (WITH AES ENCRYPTION AUTO-LOGIN) ----------------
+const ENC_KEY = "mh_secure_vault_101";
+
 function initFirebase(){
   try {
-    if(typeof firebase === 'undefined') return;
+    if(typeof firebase === 'undefined') { console.error('Firebase SDK not loaded'); return; }
     const cfg = { apiKey: "AIzaSyA3037mG-4lYelAYyJOOBlH2HMphZv3zuw", authDomain: "m-finance1.firebaseapp.com", projectId: "m-finance1" };
     if(!firebase.apps.length) fbApp = firebase.initializeApp(cfg); else fbApp = firebase.app();
     fbAuth = firebase.auth(); fbDb = firebase.firestore();
 
-    // 1. Instantly check if there's a local session (0.1s Login Fix)
+    // 1. Instantly check if there's a local session (Zero-Second Login Fix)
     let localSession = localStorage.getItem('mh_local_user');
     if(localSession) {
         try { fbUser = JSON.parse(localSession); renderProfile(); } catch(e){}
@@ -964,15 +967,20 @@ function initFirebase(){
             listenToCloud(u.uid); 
             renderProfile();
         } else {
-            // BRAVE BROWSER OFFLINE HACK
-            const savedE = localStorage.getItem('mh_auto_e');
-            const savedP = localStorage.getItem('mh_auto_p');
+            // BRAVE BROWSER OFFLINE HACK (AES ENCRYPTED)
+            const savedE = localStorage.getItem('mh_cred_e');
+            const savedP = localStorage.getItem('mh_cred_p');
             if(savedE && savedP) {
-                fbAuth.signInWithEmailAndPassword(atob(savedE), atob(savedP))
-                .catch(e => {
-                    localStorage.removeItem('mh_auto_e'); localStorage.removeItem('mh_auto_p'); localStorage.removeItem('mh_local_user');
-                    fbUser = null; renderProfile();
-                });
+                try {
+                    const decP = CryptoJS.AES.decrypt(savedP, ENC_KEY).toString(CryptoJS.enc.Utf8);
+                    fbAuth.signInWithEmailAndPassword(savedE, decP)
+                    .catch(e => {
+                        localStorage.removeItem('mh_cred_e'); localStorage.removeItem('mh_cred_p'); localStorage.removeItem('mh_local_user');
+                        fbUser = null; renderProfile();
+                    });
+                } catch(e) {
+                    localStorage.removeItem('mh_local_user'); fbUser = null; renderProfile();
+                }
             } else {
                 localStorage.removeItem('mh_local_user');
                 fbUser = null; renderProfile();
@@ -1014,7 +1022,8 @@ function doSignUp(){
   fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>console.warn("Brave bypass"))
   .then(() => fbAuth.createUserWithEmailAndPassword(e, p))
   .then((res)=>{ 
-      localStorage.setItem('mh_auto_e', btoa(e)); localStorage.setItem('mh_auto_p', btoa(p));
+      localStorage.setItem('mh_cred_e', e); 
+      localStorage.setItem('mh_cred_p', CryptoJS.AES.encrypt(p, ENC_KEY).toString());
       localStorage.setItem('mh_local_user', JSON.stringify({email: e, displayName: res.user.displayName, uid: res.user.uid}));
       closeModal('syncOverlay'); showToast('✅ Account Registered!'); 
       btn.disabled = false; btn.textContent = "Create Acct"; renderProfile(); 
@@ -1035,7 +1044,8 @@ function doSignIn(){
   fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>console.warn("Brave bypass"))
   .then(() => fbAuth.signInWithEmailAndPassword(e, p))
   .then((res)=>{ 
-      localStorage.setItem('mh_auto_e', btoa(e)); localStorage.setItem('mh_auto_p', btoa(p));
+      localStorage.setItem('mh_cred_e', e); 
+      localStorage.setItem('mh_cred_p', CryptoJS.AES.encrypt(p, ENC_KEY).toString());
       localStorage.setItem('mh_local_user', JSON.stringify({email: e, displayName: res.user.displayName, uid: res.user.uid}));
       closeModal('syncOverlay'); showToast('✅ Login Successful!'); 
       btn.disabled = false; btn.textContent = "Sign In"; renderProfile(); 
@@ -1048,8 +1058,8 @@ function doSignOut(){
     if(fbAuth) fbAuth.signOut(); 
     if(fbUnsub) fbUnsub(); 
     localStorage.removeItem('mh_local_user');
-    localStorage.removeItem('mh_auto_e');
-    localStorage.removeItem('mh_auto_p');
+    localStorage.removeItem('mh_cred_e');
+    localStorage.removeItem('mh_cred_p');
     localStorage.clear(); 
     location.reload(); 
   } 
@@ -1093,6 +1103,7 @@ document.getElementById('todayDate').textContent = new Date().toLocaleDateString
 document.documentElement.setAttribute('data-theme', localStorage.getItem('mh_theme')||'dark');
 loadAll(); checkLock();
 setTimeout(()=>{ if(!fbAuth) initFirebase(); }, 1500);
+setTimeout(()=>{ if(!fbAuth) initFirebase(); }, 4000);
 </script>
 </body>
 </html>
