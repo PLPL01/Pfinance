@@ -243,6 +243,11 @@
         <div class="card"><div class="label"><span id="dashLoanNetSub">Loan Net</span> <span class="ico">₹</span></div><div class="value num" id="dashLoanNet">₹0</div></div>
       </div>
 
+      <div class="panel" id="smartInsightsPanel" style="margin-bottom:20px; display:none;">
+        <h3 style="margin-bottom:12px; font-size:15px;">✨ Smart Insights</h3>
+        <div id="smartInsightsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
       <div class="grid-2">
         <div class="panel" style="overflow: hidden;">
           <h3 style="margin-bottom:14px;font-size:15px;">Income vs Expense Trend</h3>
@@ -533,7 +538,7 @@
   <div class="modal">
     <h3 id="loanModalTitle">Loan Entry</h3>
     <input type="hidden" id="loanId">
-    <div class="field"><label>Person Name</label><input type="text" id="loanName" placeholder="e.g., John Doe"></div>
+    <div class="field"><label>Person Name</label><input type="text" id="loanName" list="loanNameList" placeholder="e.g., John Doe" autocomplete="off" oninput="autoFillLoanRate()"><datalist id="loanNameList"></datalist></div>
     <div class="field"><label>Transaction Type</label>
       <div class="seg">
         <button type="button" class="on" data-val="given" onclick="setLoanType('given')">Money Given</button>
@@ -571,9 +576,10 @@
     </div>
     <div id="txnStandardFields">
         <div class="field-row">
-          <div class="field"><label>Category</label><input type="text" id="txnCategory" placeholder="Salary, Groceries..."></div>
+          <div class="field"><label>Category</label><input type="text" id="txnCategory" placeholder="Salary, Groceries..." list="txnCategoryList"><datalist id="txnCategoryList"></datalist></div>
           <div class="field"><label>Account Wallet</label><select id="txnAccount"></select></div>
         </div>
+        <div id="smartCatHint" style="display:none; font-size:11.5px; color:var(--accent); margin:-8px 0 10px; cursor:pointer;"></div>
     </div>
     <div id="txnTransferFields" style="display:none;">
         <div class="field-row">
@@ -581,7 +587,7 @@
           <div class="field"><label>To (Plus)</label><select id="txnToAccount"></select></div>
         </div>
     </div>
-    <div class="field"><label>Note / Remarks</label><input type="text" id="txnNote" placeholder="Optional descriptions..."></div>
+    <div class="field"><label>Note / Remarks</label><input type="text" id="txnNote" placeholder="Optional descriptions..." oninput="suggestCategory()"></div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('txnOverlay')">Cancel</button><button class="btn" onclick="saveTxn()">Save Transaction</button></div>
   </div>
 </div>
@@ -882,6 +888,72 @@ function renderDashboard(){
   const topTakenTb = document.getElementById('dashTopTakenTable'); topTakenTb.innerHTML=''; const topTaken = Object.entries(perPersonTaken).sort((a,b)=>b[1]-a[1]).slice(0,5);
   if(!topTaken.length) topTakenTb.innerHTML = '<tr><td class="empty">No outstanding taken loans.</td></tr>'; topTaken.forEach(([name,amt])=>{ topTakenTb.innerHTML += `<tr><td>${name}</td><td class="right num neg" style="font-weight:600;">${fmt(amt)}</td></tr>`; });
   renderDashboardCharts();
+  renderSmartInsights();
+}
+
+function renderSmartInsights(){
+  const panel = document.getElementById('smartInsightsPanel');
+  const list = document.getElementById('smartInsightsList');
+  const insights = [];
+  const now = new Date();
+  const thisYM = now.toISOString().slice(0,7);
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const lastYM = lastMonthDate.toISOString().slice(0,7);
+
+  // 1. Category spending trend (this month vs last month)
+  const catThis = {}, catLast = {};
+  txns.forEach(t=>{
+    if(t.type!=='expense') return;
+    const ym = t.date.slice(0,7);
+    if(ym===thisYM) catThis[t.category] = (catThis[t.category]||0)+t.amount;
+    if(ym===lastYM) catLast[t.category] = (catLast[t.category]||0)+t.amount;
+  });
+  Object.keys(catThis).forEach(cat=>{
+    const cur = catThis[cat], prev = catLast[cat]||0;
+    if(prev>0 && cur>prev*1.2){
+      const pct = Math.round(((cur-prev)/prev)*100);
+      insights.push({icon:'📈', text:`Your <b>${cat}</b> spending is up <b>${pct}%</b> vs last month (${fmt(prev)} → ${fmt(cur)}).`, tone:'warn'});
+    }
+  });
+
+  // 2. Budget close to / over limit
+  Object.keys(budgets).forEach(cat=>{
+    const spent = txns.filter(t=>t.type==='expense'&&t.category===cat&&t.date.slice(0,7)===thisYM).reduce((s,t)=>s+t.amount,0);
+    const pct = budgets[cat] ? Math.round((spent/budgets[cat])*100) : 0;
+    if(pct>=100) insights.push({icon:'🚨', text:`You've <b>exceeded</b> your "${cat}" budget (${fmt(spent)} of ${fmt(budgets[cat])}).`, tone:'bad'});
+    else if(pct>=80) insights.push({icon:'⚠️', text:`You've used <b>${pct}%</b> of your "${cat}" budget this month.`, tone:'warn'});
+  });
+
+  // 3. Overdue loans
+  if(typeof getDueLists === 'function'){
+    const due = getDueLists();
+    if(due.overdue.length) insights.push({icon:'⏰', text:`You have <b>${due.overdue.length}</b> overdue loan${due.overdue.length>1?'s':''} — consider sending a reminder.`, tone:'bad'});
+  }
+
+  // 4. Savings rate this month
+  const incThis = txns.filter(t=>t.type==='income'&&t.date.slice(0,7)===thisYM).reduce((s,t)=>s+t.amount,0);
+  const expThis = txns.filter(t=>t.type==='expense'&&t.date.slice(0,7)===thisYM).reduce((s,t)=>s+t.amount,0);
+  if(incThis>0){
+    const savingsRate = Math.round(((incThis-expThis)/incThis)*100);
+    if(savingsRate>=20) insights.push({icon:'🎉', text:`Great job — you're saving <b>${savingsRate}%</b> of your income this month.`, tone:'good'});
+    else if(savingsRate<0) insights.push({icon:'📉', text:`You're spending more than you earn this month (${savingsRate}% savings rate).`, tone:'bad'});
+  }
+
+  // 5. Biggest single expense this month
+  const thisMonthExpenses = txns.filter(t=>t.type==='expense'&&t.date.slice(0,7)===thisYM).sort((a,b)=>b.amount-a.amount);
+  if(thisMonthExpenses.length){
+    const top = thisMonthExpenses[0];
+    insights.push({icon:'💡', text:`Your biggest expense this month: <b>${fmt(top.amount)}</b> on ${top.category||'—'}${top.note?' ('+top.note+')':''}.`, tone:'neutral'});
+  }
+
+  if(!insights.length){ panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  const toneColors = {good:'var(--green)', bad:'var(--red)', warn:'#D4A017', neutral:'var(--accent)'};
+  list.innerHTML = insights.slice(0,5).map(i=>
+    `<div style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; background:var(--surface-hover); border-radius:10px; border-left:3px solid ${toneColors[i.tone]||'var(--accent)'};">
+      <span style="font-size:16px;">${i.icon}</span><span style="font-size:13px; line-height:1.5;">${i.text}</span>
+    </div>`
+  ).join('');
 }
 
 let dashChartMonthly=null, dashChartCategory=null;
@@ -904,7 +976,46 @@ function renderBudget(){
 }
 
 function setTxnType(t){ document.getElementById('txnType').value=t; document.querySelectorAll('#txnOverlay .seg button').forEach(b=>b.classList.toggle('on', b.dataset.val===t)); if(t==='transfer'){ document.getElementById('txnStandardFields').style.display='none'; document.getElementById('txnTransferFields').style.display='block'; }else{ document.getElementById('txnStandardFields').style.display='block'; document.getElementById('txnTransferFields').style.display='none'; } }
-function openTxnModal(id){ document.getElementById('txnId').value = id||''; populateAccountDropdowns(); if(id){ const t = txns.find(x=>x.id===id); ['Amount','Date','Category','Note'].forEach(k=> document.getElementById('txn'+k).value=t[k.toLowerCase()]||''); setTxnType(t.type); if(t.type==='transfer'){ document.getElementById('txnFromAccount').value = t.fromAccountId; document.getElementById('txnToAccount').value = t.toAccountId; }else{ document.getElementById('txnAccount').value = t.accountId; } } else { ['Amount','Category','Note'].forEach(k=> document.getElementById('txn'+k).value=''); setTxnType('expense'); document.getElementById('txnDate').value=todayStr(); } openModal('txnOverlay'); }
+function openTxnModal(id){
+  const uniqueCats = [...new Set(txns.map(t=>t.category).filter(Boolean))];
+  document.getElementById('txnCategoryList').innerHTML = uniqueCats.map(c=>`<option value="${c}">`).join('');
+  document.getElementById('smartCatHint').style.display = 'none';
+  document.getElementById('txnId').value = id||'';
+  populateAccountDropdowns();
+  if(id){ const t = txns.find(x=>x.id===id); ['Amount','Date','Category','Note'].forEach(k=> document.getElementById('txn'+k).value=t[k.toLowerCase()]||''); setTxnType(t.type); if(t.type==='transfer'){ document.getElementById('txnFromAccount').value = t.fromAccountId; document.getElementById('txnToAccount').value = t.toAccountId; }else{ document.getElementById('txnAccount').value = t.accountId; } }
+  else { ['Amount','Category','Note'].forEach(k=> document.getElementById('txn'+k).value=''); setTxnType('expense'); document.getElementById('txnDate').value=todayStr(); }
+  openModal('txnOverlay');
+}
+
+/* ---------------- SMART CATEGORY SUGGESTION (local keyword intelligence) ---------------- */
+const CATEGORY_KEYWORDS = {
+  'Food & Dining': ['food','lunch','dinner','breakfast','swiggy','zomato','restaurant','cafe','hotel','tiffin','chai','snacks','pizza','grocery','groceries','vegetable','milk','kirana'],
+  'Transport': ['uber','ola','petrol','diesel','fuel','auto','rickshaw','bus','train','taxi','cab','metro','parking','toll'],
+  'Bills & Utilities': ['electricity','bijli','wifi','internet','recharge','mobile bill','broadband','gas','water bill','dth'],
+  'Rent & EMI': ['rent','emi','loan installment','mortgage','house rent'],
+  'Health': ['doctor','medicine','hospital','pharmacy','medical','clinic','dawa'],
+  'Entertainment': ['movie','netflix','cinema','game','entertainment','prime video','hotstar','outing'],
+  'Shopping': ['amazon','flipkart','myntra','shopping','clothes','shoes','mall'],
+  'Education': ['school','fees','tuition','course','book','college'],
+  'Salary': ['salary','pagar','wages','payroll'],
+};
+function suggestCategory(){
+  const note = (document.getElementById('txnNote').value||'').toLowerCase();
+  const catField = document.getElementById('txnCategory');
+  const hint = document.getElementById('smartCatHint');
+  if(!note.trim() || catField.value.trim()){ hint.style.display='none'; return; }
+  for(const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)){
+    if(keywords.some(k=> note.includes(k))){
+      hint.innerHTML = `✨ Smart suggestion: <b>${cat}</b> — click to use`;
+      hint.style.display = 'block';
+      hint.onclick = () => { catField.value = cat; hint.style.display='none'; };
+      return;
+    }
+  }
+  hint.style.display = 'none';
+}
+window.suggestCategory = suggestCategory;
+
 function saveTxn(){ const type = document.getElementById('txnType').value; const amount = parseFloat(document.getElementById('txnAmount').value); if(!amount || amount<=0) return showToast('Enter valid amount'); const obj = { id: document.getElementById('txnId').value||uid(), type, amount, date: document.getElementById('txnDate').value||todayStr(), note: document.getElementById('txnNote').value }; if(type === 'transfer'){ obj.fromAccountId = document.getElementById('txnFromAccount').value; obj.toAccountId = document.getElementById('txnToAccount').value; if(obj.fromAccountId === obj.toAccountId) return showToast('Select different accounts'); } else { obj.category = document.getElementById('txnCategory').value || 'Other'; obj.accountId = document.getElementById('txnAccount').value; } txns = txns.filter(x=>x.id!==obj.id); txns.push(obj); saveAll(); closeModal('txnOverlay'); showToast('Transaction verified'); }
 function deleteTxn(id){ if(confirm('Delete transaction?')){ txns=txns.filter(x=>x.id!==id); saveAll(); } }
 
@@ -1056,7 +1167,23 @@ function sendWhatsAppReminder(id){
     : `નમસ્તે ${l.name}, આ એક update છે. આપણી લેજર વિગત મુજબ, મારે તમને ચૂકવવાનું: મૂડી: ${fmt(l.amount)}, બાકી વ્યાજ (મારે ચૂકવવાનું): ${fmt(c.interest)}. કુલ બાકી: ${fmt(c.total)}. જલદી ક્લિયર કરીશ. આભાર!`;
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
 }
-function openLoanModal(id){ document.getElementById('loanId').value = id||''; if(id){ const l = loans.find(x=>x.id===id); ['Name','Amount','Rate','Date','ReturnDate'].forEach(k=> document.getElementById('loan'+k).value=l[k.toLowerCase()]); setLoanType(l.type); } else { ['Name','Amount','Rate'].forEach(k=> document.getElementById('loan'+k).value=''); setLoanType('given'); document.getElementById('loanDate').value=todayStr(); document.getElementById('loanReturnDate').value=todayStr(); } openModal('loanOverlay'); }
+function autoFillLoanRate(){
+  const name = document.getElementById('loanName').value.trim();
+  const rateField = document.getElementById('loanRate');
+  if(document.getElementById('loanId').value) return; // don't override while editing existing entry
+  const match = loans.filter(l=>l.name.toLowerCase()===name.toLowerCase()).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+  if(match){ rateField.value = match.rate; showToast(`✨ Auto-filled ${match.rate}% (last used for ${name})`); }
+}
+window.autoFillLoanRate = autoFillLoanRate;
+
+function openLoanModal(id){
+  const uniqueNames = [...new Set(loans.map(l=>l.name))];
+  document.getElementById('loanNameList').innerHTML = uniqueNames.map(n=>`<option value="${n}">`).join('');
+  document.getElementById('loanId').value = id||'';
+  if(id){ const l = loans.find(x=>x.id===id); ['Name','Amount','Rate','Date','ReturnDate'].forEach(k=> document.getElementById('loan'+k).value=l[k.toLowerCase()]); setLoanType(l.type); }
+  else { ['Name','Amount','Rate'].forEach(k=> document.getElementById('loan'+k).value=''); setLoanType('given'); document.getElementById('loanDate').value=todayStr(); document.getElementById('loanReturnDate').value=todayStr(); }
+  openModal('loanOverlay');
+}
 function saveLoan(){
   const name = document.getElementById('loanName').value.trim();
   const amount = parseFloat(document.getElementById('loanAmount').value);
