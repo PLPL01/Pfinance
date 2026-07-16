@@ -179,6 +179,21 @@
 </head>
 <body>
 
+<div id="authGateOverlay" style="position:fixed; inset:0; z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--bg); padding:20px;">
+  <div style="font-size:44px; margin-bottom:14px;">🔐</div>
+  <h2 style="margin-bottom:6px; text-align:center;">Welcome to My Ledger</h2>
+  <p style="color:var(--text-secondary); font-size:13px; max-width:320px; text-align:center; margin-bottom:22px;">Sign in to access your data. Your entries stay private to your account only.</p>
+  <div style="width:100%; max-width:340px;">
+    <div class="field"><label>Email</label><input type="email" id="gateEmail" placeholder="you@example.com" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input type="password" id="gatePassword" placeholder="min 6 characters" autocomplete="current-password"></div>
+    <div style="display:flex; gap:10px; margin-top:10px;">
+      <button class="btn btn-ghost" style="flex:1;" onclick="gateSignUp()">Sign Up</button>
+      <button class="btn" style="flex:1;" onclick="gateSignIn()">Sign In</button>
+    </div>
+    <div id="gateStatus" style="text-align:center; font-size:12px; color:var(--text-secondary); margin-top:14px;">Connecting…</div>
+  </div>
+</div>
+
 <div id="appLockOverlay" style="position:fixed; inset:0; z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center;">
   <div style="font-size:36px; margin-bottom:16px;">🔒</div>
   <h2 id="lockTitle" style="color:var(--text-primary); margin-bottom:0;">Enter PIN</h2>
@@ -1228,9 +1243,29 @@ function updateReminderBadge(){ const dueInfo = getDueLists(); const total = due
 function renderReminders(){ const {overdue, dueSoon} = getDueLists(); const ot = document.getElementById('overdueTable'); ot.innerHTML=''; if(!overdue.length) ot.innerHTML='<tr><td colspan="3" class="empty">Zero clear overdue accounts</td></tr>'; overdue.forEach(({l,daysOver})=>{ ot.innerHTML += `<tr><td><div style="font-weight:600;">${l.name}</div></td><td class="right num">${fmt(l.amount)}</td><td class="right num" style="color:var(--red);font-weight:700;">${daysOver}d</td></tr>`; }); const dt = document.getElementById('dueSoonTable'); dt.innerHTML=''; if(!dueSoon.length) dt.innerHTML='<tr><td colspan="3" class="empty">Zero near-term deadlines.</td></tr>'; dueSoon.forEach(({l,daysLeft})=>{ dt.innerHTML += `<tr><td><div style="font-weight:600;">${l.name}</div></td><td class="right num">${fmt(l.amount)}</td><td class="right num" style="color:var(--accent);font-weight:700;">${daysLeft===0?'Today':daysLeft+'d'}</td></tr>`; }); }
 
 // ---------------- CLOUD CORE (BRAVE BYPASS FIX) ----------------
+function hideAuthGate(){ const g = document.getElementById('authGateOverlay'); if(g) g.style.display='none'; }
+function showAuthGate(msg){ const g = document.getElementById('authGateOverlay'); if(g) g.style.display='flex'; const s = document.getElementById('gateStatus'); if(s && msg) s.textContent = msg; }
+function gateSignUp(){
+  const email = document.getElementById('gateEmail').value.trim();
+  const pw = document.getElementById('gatePassword').value;
+  if(!email || pw.length<6){ document.getElementById('gateStatus').textContent = 'Enter email & a password (6+ characters)'; return; }
+  if(!fbAuth){ document.getElementById('gateStatus').textContent = 'Still connecting… please wait a moment'; initFirebase(); return; }
+  document.getElementById('gateStatus').textContent = 'Creating account…';
+  fbAuth.createUserWithEmailAndPassword(email, pw).then(()=>{ hideAuthGate(); showToast('Account created'); }).catch(e=> document.getElementById('gateStatus').textContent = e.message);
+}
+function gateSignIn(){
+  const email = document.getElementById('gateEmail').value.trim();
+  const pw = document.getElementById('gatePassword').value;
+  if(!email || !pw){ document.getElementById('gateStatus').textContent = 'Enter email and password'; return; }
+  if(!fbAuth){ document.getElementById('gateStatus').textContent = 'Still connecting… please wait a moment'; initFirebase(); return; }
+  document.getElementById('gateStatus').textContent = 'Signing in…';
+  fbAuth.signInWithEmailAndPassword(email, pw).then(()=>{ hideAuthGate(); showToast('Signed in'); }).catch(e=> document.getElementById('gateStatus').textContent = e.message);
+}
+window.gateSignUp = gateSignUp; window.gateSignIn = gateSignIn;
+
 function initFirebase(){
   try {
-    if(typeof firebase === 'undefined') return;
+    if(typeof firebase === 'undefined'){ showAuthGate('Could not load — check your internet connection and refresh.'); return; }
     const cfg = { apiKey: "AIzaSyA3037mG-4lYelAYyJOOBlH2HMphZv3zuw", authDomain: "m-finance1.firebaseapp.com", projectId: "m-finance1" };
     if(!firebase.apps.length) fbApp = firebase.initializeApp(cfg); else fbApp = firebase.app();
     fbAuth = firebase.auth(); fbDb = firebase.firestore();
@@ -1241,15 +1276,17 @@ function initFirebase(){
     // Firebase's own secure session token, this is purely cosmetic.
     try{
       const cached = JSON.parse(localStorage.getItem('mh_cached_profile')||'null');
-      if(cached && !fbUser){ fbUser = cached; renderProfile(); }
+      if(cached && !fbUser){ fbUser = cached; renderProfile(); hideAuthGate(); }
     }catch(e){}
 
     fbAuth.onAuthStateChanged(u=>{
       fbUser = u;
       if(u){
+        hideAuthGate();
         try{ localStorage.setItem('mh_cached_profile', JSON.stringify({email:u.email, displayName:u.displayName, uid:u.uid})); }catch(e){}
         listenToCloud(u.uid);
       } else {
+        showAuthGate('Please sign in to continue');
         try{ localStorage.removeItem('mh_cached_profile'); }catch(e){}
       }
       renderProfile();
